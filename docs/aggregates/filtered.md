@@ -46,11 +46,11 @@ Filtered and unfiltered columns can coexist on the same model — declare `artic
 
 Three filter forms:
 
-| Form | Attribute param | Meaning |
-|------|----------------|---------|
-| Equality | `filter: ['col' => value, ...]` | All listed columns must match |
-| Not-null | `filterNotNull: 'col'` | `col IS NOT NULL` |
-| Raw SQL | `filterRaw: 'active = 1'`, `filterRawWatches: ['active']` | Arbitrary SQL predicate |
+| Form                | Attribute param                                             | Meaning                                         |
+| ------------------- | ----------------------------------------------------------- | ----------------------------------------------- |
+| Equality            | `filter: ['col' => value, ...]`                             | All listed columns must match                   |
+| Not-null            | `filterNotNull: 'col'`                                      | `col IS NOT NULL`                               |
+| Raw SQL             | `filterRaw: 'active = 1'`, `filterRawWatches: ['active']`   | Arbitrary SQL predicate                         |
 | Raw SQL, no columns | `filterRaw: '1 = 1'`, `filterRawNoColumnDependencies: true` | Raw predicate that references no columns at all |
 
 `filterRawWatches` must list **every** column the raw SQL references — delta maintenance uses the list to decide whether a write could have flipped a row in or out of the filter. Omit a referenced column and the stored aggregate silently drifts; the registry validates this at boot time, so a missing entry surfaces as a startup `AggregateConfigurationException` rather than as runtime corruption.
@@ -116,11 +116,11 @@ The fresh-read path (`withFreshAggregates()`, `freshAggregate()`) always generat
 
 ## Index tuning
 
-Include every raw-filter *watched column* in the `nestedSet(cover: [...])` index alongside the source column. The inline `SUM(CASE WHEN <raw> THEN i.source ELSE 0 END)` shape rides the same covering range scan as unfiltered aggregates only when the columns the CASE WHEN reads are all in the cover; otherwise MySQL falls back to a non-covering scan that fetches each candidate row through the clustered index (~40× slower at N=10K).
+Include every raw-filter *watched column* in the `nestedSet(cover: [...])` index alongside the source column. The inline `SUM(CASE WHEN <raw> THEN i.source ELSE 0 END)` shape rides the same covering range scan as unfiltered aggregates only when the columns the CASE WHEN reads are all in the cover; otherwise MySQL falls back to a non-covering scan that fetches each candidate row through the clustered index (\~40× slower at N=10K).
 
 ```php
 $table->nestedSet(cover: ['articles', 'visibility', 'status']);
 $table->nestedSetAggregate('public_articles');  // filtered on visibility
 ```
 
-For trees over ~5K rows with raw-filter aggregates declared, prefer `fixAggregates(chunkSize: 1000)` or `queueFixAggregates()` over the unchunked call — the full-table SELECT still scales linearly with N but the chunked path bounds each statement so long-running operations don't lock other writers behind them.
+For trees over \~5K rows with raw-filter aggregates declared, prefer `fixAggregates(chunkSize: 1000)` or `queueFixAggregates()` over the unchunked call — the full-table SELECT still scales linearly with N but the chunked path bounds each statement so long-running operations don't lock other writers behind them.

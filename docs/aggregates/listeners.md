@@ -215,12 +215,12 @@ class Monster extends Model implements MaintainsTreeAggregates { use NodeTrait; 
 
 The companion shape mirrors the SQL aggregates:
 
-| Display column          | Companions allocated                                |
-|-------------------------|-----------------------------------------------------|
-| `variance(listener)`    | `*__sum`, `*__sum_sq`, `*__count`                   |
-| `stddev(listener)`      | `*__sum`, `*__sum_sq`, `*__count`                   |
-| `geometricMean(listener)` | `*__sum_log`, `*__count` (Ln-transformed)         |
-| `harmonicMean(listener)`  | `*__sum_recip`, `*__count` (Recip-transformed)    |
+| Display column            | Companions allocated                           |
+| ------------------------- | ---------------------------------------------- |
+| `variance(listener)`      | `*__sum`, `*__sum_sq`, `*__count`              |
+| `stddev(listener)`        | `*__sum`, `*__sum_sq`, `*__count`              |
+| `geometricMean(listener)` | `*__sum_log`, `*__count` (Ln-transformed)      |
+| `harmonicMean(listener)`  | `*__sum_recip`, `*__count` (Recip-transformed) |
 
 Declare each display column **and** its companions in the migration. The companions are integer-counted (`__count`) and decimal-summed; pick widths that fit your contribution range:
 
@@ -268,7 +268,7 @@ The collection-level fresh-read path is SQL-only and does not cover listener col
 
 ### Repair / Min-Max recompute holds the bounding-box subtree in PHP memory
 
-`fixAggregates()` streams every in-scope row through one cursor pass (peak hydrated memory is O(1)) but still keeps a small scalar meta entry per node — bounds + per-definition contribution — alive for the DFS pass. The Min/Max per-mutation recompute path holds the bounding-box subtree's scalar meta similarly. At N > ~100K nodes the meta list (~150 bytes per node) becomes the constraint rather than CPU. Anchored `fixAggregates($subtreeRoot)` and chunked `fixAggregates(chunkSize: …)` both bound the working set.
+`fixAggregates()` streams every in-scope row through one cursor pass (peak hydrated memory is O(1)) but still keeps a small scalar meta entry per node — bounds + per-definition contribution — alive for the DFS pass. The Min/Max per-mutation recompute path holds the bounding-box subtree's scalar meta similarly. At N \> \~100K nodes the meta list (\~150 bytes per node) becomes the constraint rather than CPU. Anchored `fixAggregates($subtreeRoot)` and chunked `fixAggregates(chunkSize: …)` both bound the working set.
 
 ### No `filterRaw:` on listener attributes
 

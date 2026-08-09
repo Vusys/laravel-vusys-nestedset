@@ -65,11 +65,11 @@ public function tree(
 
 `$depth` is the number of generations below the root — `depth: 0` produces a single root, `depth: 3` produces a four-generation tree. `$branching` controls how many children each non-leaf gets, and accepts three shapes:
 
-| Form | Meaning |
-|---|---|
-| `int` | Every non-leaf has this many children. Uniform tree. |
+| Form                                | Meaning                                                                                                        |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `int`                               | Every non-leaf has this many children. Uniform tree.                                                           |
 | `list<int>` indexed by parent depth | `[5, 2, 1]` means root has 5 children, each child has 2 grandchildren, each grandchild has 1 great-grandchild. |
-| `Closure(int $parentDepth): int` | Most general — returns the child count for a parent at the given depth. |
+| `Closure(int $parentDepth): int`    | Most general — returns the child count for a parent at the given depth.                                        |
 
 ### Shape recipes
 
@@ -100,15 +100,15 @@ Asymmetric or skewed trees (where one branch is deeper than its siblings) need [
 
 ### Validation
 
-| Input | Behaviour |
-|---|---|
-| `depth < 0` | `InvalidArgumentException` |
-| `branching` int `< 1` with `depth > 0` | `InvalidArgumentException` (a non-leaf with zero children cannot exist) |
-| `branching` array shorter than `depth` | `InvalidArgumentException` — the message names the expected minimum length |
-| `branching` array entry `< 1` with deeper levels still requested | `InvalidArgumentException` |
-| `branching` closure returning non-int | `InvalidArgumentException` |
-| `branching` closure returning `< 0` | `InvalidArgumentException` |
-| `branching` array longer than `depth` | Surplus entries silently ignored |
+| Input                                                            | Behaviour                                                                  |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `depth < 0`                                                      | `InvalidArgumentException`                                                 |
+| `branching` int `< 1` with `depth > 0`                           | `InvalidArgumentException` (a non-leaf with zero children cannot exist)    |
+| `branching` array shorter than `depth`                           | `InvalidArgumentException` — the message names the expected minimum length |
+| `branching` array entry `< 1` with deeper levels still requested | `InvalidArgumentException`                                                 |
+| `branching` closure returning non-int                            | `InvalidArgumentException`                                                 |
+| `branching` closure returning `< 0`                              | `InvalidArgumentException`                                                 |
+| `branching` array longer than `depth`                            | Surplus entries silently ignored                                           |
 
 ## Explicit shapes with `treeFromShape()`
 
@@ -390,20 +390,20 @@ Tag::factory()
 
 ## Common errors
 
-| Condition | Exception | What to do |
-|---|---|---|
-| `depth < 0` | `InvalidArgumentException` | Use `depth: 0` for a single root. |
-| `branching: 0` with `depth > 0` | `InvalidArgumentException` | Use `depth: 0` if you want no children. |
-| `branching` array shorter than `depth` | `InvalidArgumentException` | Provide one entry per generation. |
-| `branching` closure returns non-int or `< 0` | `InvalidArgumentException` | Return a non-negative int. |
-| `treeFromShape([])` | `InvalidArgumentException` | Pass at least one top-level entry. |
-| `treeFromShape` entry has non-array `children` | `InvalidArgumentException` | `children` must be an array of further nodes. |
-| `labelColumn:` set to a column that doesn't exist | `InvalidArgumentException` | The message lists the model's actual columns. |
-| `parent:` is soft-deleted | `InvalidArgumentException` | Restore the parent (`->restore()`) or pass `null`. |
-| `parent:` scope ≠ factory state's scope | `ScopeViolationException` | Match the scope in `->state(...)` or pick a different parent. |
-| Scoped factory with no scope state or anchor | `ScopeViolationException` | Pass `parent:` (the trait copies scope from the anchor) or `->state(['scope_col' => ...])`. |
-| `$per` closure returns non-array | `InvalidArgumentException` | Return an associative array (possibly empty). |
-| `tree(...)->make()` or `treeFromShape(...)->make()` | `LogicException` | Use `create()`, or `previewTree()` for the no-DB case. |
-| `tree(...)->count(N)` | `LogicException` | Put `count()` first: `count(N)->tree(...)`. |
+| Condition                                           | Exception                  | What to do                                                                                  |
+| --------------------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------- |
+| `depth < 0`                                         | `InvalidArgumentException` | Use `depth: 0` for a single root.                                                           |
+| `branching: 0` with `depth > 0`                     | `InvalidArgumentException` | Use `depth: 0` if you want no children.                                                     |
+| `branching` array shorter than `depth`              | `InvalidArgumentException` | Provide one entry per generation.                                                           |
+| `branching` closure returns non-int or `< 0`        | `InvalidArgumentException` | Return a non-negative int.                                                                  |
+| `treeFromShape([])`                                 | `InvalidArgumentException` | Pass at least one top-level entry.                                                          |
+| `treeFromShape` entry has non-array `children`      | `InvalidArgumentException` | `children` must be an array of further nodes.                                               |
+| `labelColumn:` set to a column that doesn't exist   | `InvalidArgumentException` | The message lists the model's actual columns.                                               |
+| `parent:` is soft-deleted                           | `InvalidArgumentException` | Restore the parent (`->restore()`) or pass `null`.                                          |
+| `parent:` scope ≠ factory state's scope             | `ScopeViolationException`  | Match the scope in `->state(...)` or pick a different parent.                               |
+| Scoped factory with no scope state or anchor        | `ScopeViolationException`  | Pass `parent:` (the trait copies scope from the anchor) or `->state(['scope_col' => ...])`. |
+| `$per` closure returns non-array                    | `InvalidArgumentException` | Return an associative array (possibly empty).                                               |
+| `tree(...)->make()` or `treeFromShape(...)->make()` | `LogicException`           | Use `create()`, or `previewTree()` for the no-DB case.                                      |
+| `tree(...)->count(N)`                               | `LogicException`           | Put `count()` first: `count(N)->tree(...)`.                                                 |
 
 All package-specific exceptions implement the `Vusys\NestedSet\Exceptions\NestedSetException` marker interface (which extends `Throwable`), so you can catch any package-originated failure with a single `catch (\Vusys\NestedSet\Exceptions\NestedSetException $e)` regardless of the SPL base class each one extends.

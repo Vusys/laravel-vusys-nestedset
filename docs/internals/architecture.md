@@ -39,19 +39,19 @@ trait NodeTrait
 }
 ```
 
-| Concern (`src/Concerns/`) | Owns | Walkthrough |
-|---|---|---|
-| `HasTreeMutation` | `appendToNode` / `prependToNode` / `insertBeforeNode` / `insertAfterNode` / `makeRoot` / `moveTo` / `up` / `down` — queues a `PendingOperation`, flushed on `save()` | [The Mutation Engine](mutation-engine.html) |
-| `HasTreeRelations` | `parent`, `children`, and the custom eager-loadable `ancestors` / `descendants` relations | [Query Engine & Relations](query-engine.html) |
-| `HasNodeInspection` | `isRoot` / `isLeaf` / `isDescendantOf` / `getSubtreeSize` — pure in-memory predicates over the bounds | [The Nested-Set Model](nested-set-model.html) |
-| `HasTreeRepair` | `isBroken` / `countErrors` / `fixTree` and the `TreeFixResult` value object | [Integrity & Repair](repair.html) |
-| `HasNestedSetAggregates` | precalculated rollup columns (SUM/COUNT/AVG/MIN/MAX, filtered, listener-based) | [Aggregate Maintenance](aggregate-maintenance.html) |
-| `HasSoftDeleteTree` | cascade soft-delete / restore with `deleted_at` stamp matching | [Aggregate Maintenance](aggregate-maintenance.html#soft-deletes) |
-| `HasBulkInsert` | `bulkInsertTree()` — one `makeGap` + N saves + one deferred `fixAggregates` | [Bulk Insertion](../tree-operations/bulk-insertion.html) |
-| `HasTreeExport` | `toAsciiTree()` / `toMermaid()` / `toDot()` / `toJsonTree()` tree serialisers, plus `*Forest` / `*Scope` static counterparts | [Tree Exporters](../querying/exporters.html) |
-| `HasTreeWalk` | `walk()` / `dfs()` / `dfsPostOrder()` / `bfs()` / `flattenedSubtree()` — visitor + generators over a loaded subtree, with `WalkContext` and `WalkFilter` | [Walking Subtrees](../querying/walking.html) |
-| `HasSubtreeClone` | `cloneSubtreeTo()` / `cloneSubtreeAsRoot()` — deep-copy a subtree (refresh + delegate to `bulkInsertTree`) | [Cloning Subtrees](../tree-operations/cloning.html) |
-| `HasMaterialisedPath` | maintained slug/id path columns alongside `lft`/`rgt` | [Materialised Paths](../tree-operations/materialised-paths.html) |
+| Concern (`src/Concerns/`) | Owns                                                                                                                                                                 | Walkthrough                                                      |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `HasTreeMutation`         | `appendToNode` / `prependToNode` / `insertBeforeNode` / `insertAfterNode` / `makeRoot` / `moveTo` / `up` / `down` — queues a `PendingOperation`, flushed on `save()` | [The Mutation Engine](mutation-engine.html)                      |
+| `HasTreeRelations`        | `parent`, `children`, and the custom eager-loadable `ancestors` / `descendants` relations                                                                            | [Query Engine & Relations](query-engine.html)                    |
+| `HasNodeInspection`       | `isRoot` / `isLeaf` / `isDescendantOf` / `getSubtreeSize` — pure in-memory predicates over the bounds                                                                | [The Nested-Set Model](nested-set-model.html)                    |
+| `HasTreeRepair`           | `isBroken` / `countErrors` / `fixTree` and the `TreeFixResult` value object                                                                                          | [Integrity & Repair](repair.html)                                |
+| `HasNestedSetAggregates`  | precalculated rollup columns (SUM/COUNT/AVG/MIN/MAX, filtered, listener-based)                                                                                       | [Aggregate Maintenance](aggregate-maintenance.html)              |
+| `HasSoftDeleteTree`       | cascade soft-delete / restore with `deleted_at` stamp matching                                                                                                       | [Aggregate Maintenance](aggregate-maintenance.html#soft-deletes) |
+| `HasBulkInsert`           | `bulkInsertTree()` — one `makeGap` + N saves + one deferred `fixAggregates`                                                                                          | [Bulk Insertion](../tree-operations/bulk-insertion.html)         |
+| `HasTreeExport`           | `toAsciiTree()` / `toMermaid()` / `toDot()` / `toJsonTree()` tree serialisers, plus `*Forest` / `*Scope` static counterparts                                         | [Tree Exporters](../querying/exporters.html)                     |
+| `HasTreeWalk`             | `walk()` / `dfs()` / `dfsPostOrder()` / `bfs()` / `flattenedSubtree()` — visitor + generators over a loaded subtree, with `WalkContext` and `WalkFilter`             | [Walking Subtrees](../querying/walking.html)                     |
+| `HasSubtreeClone`         | `cloneSubtreeTo()` / `cloneSubtreeAsRoot()` — deep-copy a subtree (refresh + delegate to `bulkInsertTree`)                                                           | [Cloning Subtrees](../tree-operations/cloning.html)              |
+| `HasMaterialisedPath`     | maintained slug/id path columns alongside `lft`/`rgt`                                                                                                                | [Materialised Paths](../tree-operations/materialised-paths.html) |
 
 ### The walker — `src/Walker/`
 
@@ -116,14 +116,14 @@ Because `newEloquentBuilder()` is narrowed to return `TreeQueryBuilder`, every `
 
 The trait hooks into the Eloquent model lifecycle in `bootNodeTrait()` (`src/NodeTrait.php`). This single method is the spine of the whole package: the mutation engine, the aggregate maintenance, and the cascade logic all hang off these standard model events.
 
-| Eloquent event | Hook | What it does |
-|---|---|---|
-| `saving` | `callPendingAction()` then `captureAggregateDeltas()` | Dispatch the queued structural mutation; for existing rows, snapshot the aggregate deltas before the row updates. Also throws `UnplacedNodeException` if a new row reaches `save()` without being placed in the tree. |
-| `saved` | `applyAggregateDeltas()` | Issue the captured aggregate `UPDATE` up the ancestor chain. |
-| `created` | `applyAggregateOnCreate()` | Push a freshly inserted node's contribution to its ancestors. |
-| `deleting` | re-read structural columns | Reload `lft`/`rgt`/`depth`/`parent_id` (+ scope columns) from the DB so the cascade and gap-close act on current values, not a stale in-memory copy. |
-| `deleted` | soft cascade → force cascade → `applyAggregateOnDelete()` → `applyStructuralCleanupOnDelete()` | Cascade the delete through descendants, decrement ancestor aggregates, then close the lft/rgt gap. |
-| `restored` | restore cascade → `applyAggregateOnRestore()` | Un-trash descendants, then re-add their contribution to ancestors. |
+| Eloquent event | Hook                                                                                           | What it does                                                                                                                                                                                                          |
+| -------------- | ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `saving`       | `callPendingAction()` then `captureAggregateDeltas()`                                          | Dispatch the queued structural mutation; for existing rows, snapshot the aggregate deltas before the row updates. Also throws `UnplacedNodeException` if a new row reaches `save()` without being placed in the tree. |
+| `saved`        | `applyAggregateDeltas()`                                                                       | Issue the captured aggregate `UPDATE` up the ancestor chain.                                                                                                                                                          |
+| `created`      | `applyAggregateOnCreate()`                                                                     | Push a freshly inserted node's contribution to its ancestors.                                                                                                                                                         |
+| `deleting`     | re-read structural columns                                                                     | Reload `lft`/`rgt`/`depth`/`parent_id` (+ scope columns) from the DB so the cascade and gap-close act on current values, not a stale in-memory copy.                                                                  |
+| `deleted`      | soft cascade → force cascade → `applyAggregateOnDelete()` → `applyStructuralCleanupOnDelete()` | Cascade the delete through descendants, decrement ancestor aggregates, then close the lft/rgt gap.                                                                                                                    |
+| `restored`     | restore cascade → `applyAggregateOnRestore()`                                                  | Un-trash descendants, then re-add their contribution to ancestors.                                                                                                                                                    |
 
 Each aggregate hook runs inside `runAggregateHook()`, a `try`/`catch` that dispatches an `AggregateMaintenanceFailed` event before re-throwing — so a failing rollup surfaces to Sentry/Bugsnag while still rolling back the wrapping transaction.
 

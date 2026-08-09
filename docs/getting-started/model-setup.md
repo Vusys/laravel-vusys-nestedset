@@ -1,7 +1,6 @@
 # Model Setup
 
-A `Category` model — the example used throughout these docs — looks
-like this:
+A `Category` model — the example used throughout these docs — looks like this:
 
 ```php
 use Illuminate\Database\Eloquent\Model;
@@ -23,44 +22,19 @@ class Category extends Model implements MaintainsTreeAggregates
 }
 ```
 
-The trait satisfies the `HasNestedSet` interface (and the
-`MaintainsTreeAggregates` sub-contract, which adds the aggregate-trait
-surface) out of the box — you only need to implement methods yourself if
-you're storing nested-set data on columns the trait can't derive from
-your `protected $casts`.
+The trait satisfies the `HasNestedSet` interface (and the `MaintainsTreeAggregates` sub-contract, which adds the aggregate-trait surface) out of the box — you only need to implement methods yourself if you're storing nested-set data on columns the trait can't derive from your `protected $casts`.
 
 ## What `NodeTrait` gives you
 
-- Tree mutation primitives: `appendToNode`, `prependToNode`,
-  `insertBeforeNode`, `insertAfterNode`, `makeRoot`, `saveAsRoot`,
-  `up`, `down`. Plus the higher-level `moveTo` / `moveBefore` /
-  `moveAfter` wrappers that pick the right primitive for you.
-  See [Inserting & Moving](../tree-operations/inserting.html).
-- Bulk insertion: `bulkInsertTree()` — collapses N saves' worth of
-  gap-shifts into one. See
-  [Bulk Insertion](../tree-operations/bulk-insertion.html).
-- Tree-aware query scopes on the model's builder. See
-  [Tree Queries](../querying/queries.html).
-- Eloquent relations: `parent`, `children`, `ancestors`, `descendants`.
-  See [Eloquent Relations](../querying/relations.html).
-- Inspection: `isRoot`, `isLeaf`, `isChild`, `isDescendantOf`,
-  `isAncestorOf`, `isSiblingOf`, `isPlacedInTree`, `getSubtreeSize`,
-  `getDescendantCount`, plus the read-only sibling lookups
-  `prevSibling` / `nextSibling`. See
-  [Inspection](../querying/inspection.html).
-- Repair: `isBroken`, `countErrors`, `fixTree`. See
-  [Tree Repair](../maintenance/fix-tree.html).
-- Exporters: `toMermaid`, `toDot`, `toAsciiTree`, `toJsonTree` —
-  read-only formatters for debugging, docs, and frontend handoff,
-  plus the `*Forest` / `*Scope` static counterparts that walk every
-  root in the table. See [Tree Exporters](../querying/exporters.html).
-- Optional aggregate maintenance when you declare
-  `#[NestedSetAggregate]` attributes. See
-  [Aggregates Overview](../aggregates/overview.html).
-- Typed events fired on Laravel's event bus around every meaningful
-  operation — moves, cascades, repairs, aggregate maintenance, plus
-  model-carrying events for in-process indexing and cache priming. See
-  [Events](../reference/events.html).
+- Tree mutation primitives: `appendToNode`, `prependToNode`, `insertBeforeNode`, `insertAfterNode`, `makeRoot`, `saveAsRoot`, `up`, `down`. Plus the higher-level `moveTo` / `moveBefore` / `moveAfter` wrappers that pick the right primitive for you. See [Inserting & Moving](../tree-operations/inserting.html).
+- Bulk insertion: `bulkInsertTree()` — collapses N saves' worth of gap-shifts into one. See [Bulk Insertion](../tree-operations/bulk-insertion.html).
+- Tree-aware query scopes on the model's builder. See [Tree Queries](../querying/queries.html).
+- Eloquent relations: `parent`, `children`, `ancestors`, `descendants`. See [Eloquent Relations](../querying/relations.html).
+- Inspection: `isRoot`, `isLeaf`, `isChild`, `isDescendantOf`, `isAncestorOf`, `isSiblingOf`, `isPlacedInTree`, `getSubtreeSize`, `getDescendantCount`, plus the read-only sibling lookups `prevSibling` / `nextSibling`. See [Inspection](../querying/inspection.html).
+- Repair: `isBroken`, `countErrors`, `fixTree`. See [Tree Repair](../maintenance/fix-tree.html).
+- Exporters: `toMermaid`, `toDot`, `toAsciiTree`, `toJsonTree` — read-only formatters for debugging, docs, and frontend handoff, plus the `*Forest` / `*Scope` static counterparts that walk every root in the table. See [Tree Exporters](../querying/exporters.html).
+- Optional aggregate maintenance when you declare `#[NestedSetAggregate]` attributes. See [Aggregates Overview](../aggregates/overview.html).
+- Typed events fired on Laravel's event bus around every meaningful operation — moves, cascades, repairs, aggregate maintenance, plus model-carrying events for in-process indexing and cache priming. See [Events](../reference/events.html).
 
 ## Refresh after mutating a child
 
@@ -79,15 +53,11 @@ your `protected $casts`.
 
 ## Soft deletes
 
-If you add Laravel's `SoftDeletes` trait, the package cascades
-delete and restore through the subtree. See
-[Soft Deletes](../tree-operations/soft-deletes.html).
+If you add Laravel's `SoftDeletes` trait, the package cascades delete and restore through the subtree. See [Soft Deletes](../tree-operations/soft-deletes.html).
 
 ## Scoped (multi-tenant) models
 
-To partition one table into many independent trees — per-tenant menus,
-per-user folder structures — add `#[NestedSetScope]`. See
-[Scoped Trees](../querying/scoped-trees.html).
+To partition one table into many independent trees — per-tenant menus, per-user folder structures — add `#[NestedSetScope]`. See [Scoped Trees](../querying/scoped-trees.html).
 
 ## Exceptions
 

@@ -50,13 +50,13 @@ After the call, `Category::where('parent_id', $electronics->id)->orderBy('lft')-
 
 The membership must match exactly: every direct child appears once, no unknown keys, no duplicates. Any deviation throws `InvalidSiblingOrderException` with a message naming the offending keys.
 
-| Condition | Behaviour |
-|---|---|
+| Condition                                    | Behaviour                                |
+| -------------------------------------------- | ---------------------------------------- |
 | Identity order (already matches `lft` order) | Silent no-op — no UPDATE fires, no event |
-| Parent has no children | Silent no-op |
-| Missing or extra key | `InvalidSiblingOrderException` |
-| Duplicate key | `InvalidSiblingOrderException` |
-| Parent unsaved | `UnplacedNodeException` |
+| Parent has no children                       | Silent no-op                             |
+| Missing or extra key                         | `InvalidSiblingOrderException`           |
+| Duplicate key                                | `InvalidSiblingOrderException`           |
+| Parent unsaved                               | `UnplacedNodeException`                  |
 
 ## moveToSiblingPosition — drop a row at slot N
 

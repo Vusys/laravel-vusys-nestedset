@@ -10,7 +10,7 @@ Please **do not** open a public GitHub issue or pull request for suspected vulne
 
 Use GitHub's private vulnerability reporting:
 
-> <https://github.com/Vusys/laravel-nestedset/security/advisories/new>
+> [https://github.com/Vusys/laravel-nestedset/security/advisories/new](https://github.com/Vusys/laravel-nestedset/security/advisories/new)
 
 That route notifies the maintainer privately, opens an embargoed advisory, and gives us a place to coordinate the fix and CVE if needed.
 

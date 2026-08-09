@@ -105,28 +105,28 @@ A trashed *destination* parent always throws — cloning into a deleted parent w
 
 ## What's preserved, what's regenerated
 
-| Column kind | Behaviour on the clone |
-|---|---|
-| Primary key | Regenerated (autoincrement or UUID, per model config) |
-| Structural (`lft`, `rgt`, `depth`, `parent_id`) | Regenerated to match the destination position |
-| Scope columns | Copied from the destination parent's scope (or the source's, for `cloneSubtreeAsRoot()`) |
-| Materialised path | Recomputed under the destination parent's path |
-| `deleted_at` | Always `null` (clones are live) |
-| `created_at` / `updated_at` | Refreshed to the clone's transaction time |
-| Aggregate columns | Stripped on insert, then filled by the deferred recompute |
-| Every other column | Copied verbatim (after `$transform` runs) |
+| Column kind                                     | Behaviour on the clone                                                                   |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Primary key                                     | Regenerated (autoincrement or UUID, per model config)                                    |
+| Structural (`lft`, `rgt`, `depth`, `parent_id`) | Regenerated to match the destination position                                            |
+| Scope columns                                   | Copied from the destination parent's scope (or the source's, for `cloneSubtreeAsRoot()`) |
+| Materialised path                               | Recomputed under the destination parent's path                                           |
+| `deleted_at`                                    | Always `null` (clones are live)                                                          |
+| `created_at` / `updated_at`                     | Refreshed to the clone's transaction time                                                |
+| Aggregate columns                               | Stripped on insert, then filled by the deferred recompute                                |
+| Every other column                              | Copied verbatim (after `$transform` runs)                                                |
 
 ## Guards
 
-| Condition | Throws |
-|---|---|
-| Source has no bounds (unplaced) | `UnplacedNodeException` |
-| Destination parent has no bounds | `UnplacedNodeException` |
-| Source is trashed and `includeTrashed: false` | `InvalidArgumentException` |
-| Destination parent is trashed | `InvalidArgumentException` |
-| Destination is in source's own subtree (including self) | `InvalidCloneTargetException` |
-| Source and destination scopes differ | `ScopeViolationException` |
-| `$transform` returns a structural / scope / primary-key column | `LogicException` |
+| Condition                                                      | Throws                        |
+| -------------------------------------------------------------- | ----------------------------- |
+| Source has no bounds (unplaced)                                | `UnplacedNodeException`       |
+| Destination parent has no bounds                               | `UnplacedNodeException`       |
+| Source is trashed and `includeTrashed: false`                  | `InvalidArgumentException`    |
+| Destination parent is trashed                                  | `InvalidArgumentException`    |
+| Destination is in source's own subtree (including self)        | `InvalidCloneTargetException` |
+| Source and destination scopes differ                           | `ScopeViolationException`     |
+| `$transform` returns a structural / scope / primary-key column | `LogicException`              |
 
 ## Event
 

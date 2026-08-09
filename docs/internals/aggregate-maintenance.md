@@ -4,7 +4,7 @@ The package can keep precalculated rollup columns — a SUM of every descendant'
 
 It is the implementation behind the user-facing [Aggregates](../aggregates/overview.html) section. The [Maintenance](../aggregates/maintenance.html) page already gives the per-mutation **cost model** (which family pays what); this page walks the **code and SQL** that produce those costs, so the two are complementary — cross-references point you to the cost tables rather than repeating them.
 
-Two layers: `src/Concerns/HasNestedSetAggregates.php` (the lifecycle hooks, ~2900 lines) and `src/Aggregates/` (the strategies, function metadata, and declaration types).
+Two layers: `src/Concerns/HasNestedSetAggregates.php` (the lifecycle hooks, \~2900 lines) and `src/Aggregates/` (the strategies, function metadata, and declaration types).
 
 ## Three kinds of aggregate
 
@@ -44,12 +44,12 @@ protected function nestedSetAggregates(): array
 
 The maintenance strategy for a column is determined entirely by its function. `AggregateFunction` (`src/Aggregates/AggregateFunction.php`) declares which family each function belongs to via three predicates — `supportsDelta()`, `requiresChainRecompute()`, and `companionSet()`:
 
-| Family | Functions | Strategy |
-|---|---|---|
-| **Delta-maintainable** | `Sum`, `Count`, `BitXor` | `col = col ± Δ` per ancestor |
-| **Companion-derived** | `Avg`, `Variance`, `Stddev`, `WeightedAvg`, `BoolOr`, `BoolAnd`, `GeometricMean`, `HarmonicMean` | delta the internal companions, rewrite the display column from a formula |
-| **Recompute-only** | `Min`, `Max`, `BitOr`, `BitAnd`, `DistinctCount`, `StringAgg`, `JsonAgg`, `JsonObjectAgg` | `SELECT` then `UPDATE` the invalidated subset |
-| **Fresh-read-only** | `Median`, `Percentile` | never stored |
+| Family                 | Functions                                                                                        | Strategy                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| **Delta-maintainable** | `Sum`, `Count`, `BitXor`                                                                         | `col = col ± Δ` per ancestor                                             |
+| **Companion-derived**  | `Avg`, `Variance`, `Stddev`, `WeightedAvg`, `BoolOr`, `BoolAnd`, `GeometricMean`, `HarmonicMean` | delta the internal companions, rewrite the display column from a formula |
+| **Recompute-only**     | `Min`, `Max`, `BitOr`, `BitAnd`, `DistinctCount`, `StringAgg`, `JsonAgg`, `JsonObjectAgg`        | `SELECT` then `UPDATE` the invalidated subset                            |
+| **Fresh-read-only**    | `Median`, `Percentile`                                                                           | never stored                                                             |
 
 `BitXor` is the standout — it is delta-maintainable on *both* insert and delete because XOR is self-inverse (`(x ^ a) ^ a = x`), so removing a contribution is the same operation as adding it. The function metadata records this directly:
 
@@ -97,13 +97,13 @@ The companion columns are allocated by the `nestedSetAggregate()` Blueprint macr
 
 Maintenance rides the Eloquent lifecycle events wired in `bootNodeTrait()` ([Architecture](architecture.html#lifecycle-wiring)). The hooks, all in `HasNestedSetAggregates`, fire in a fixed order relative to the structural SQL:
 
-| Mutation | Hooks (in order) |
-|---|---|
+| Mutation             | Hooks (in order)                                                                          |
+| -------------------- | ----------------------------------------------------------------------------------------- |
 | Source-column update | `captureAggregateDeltas()` on `saving` → row UPDATE → `applyAggregateDeltas()` on `saved` |
-| Insert (new node) | row INSERT → `applyAggregateOnCreate()` on `created` |
-| Move (existing node) | `applyAggregateBeforeMove()` → structural SQL → `applyAggregateAfterMove()` |
-| Delete (hard/soft) | cascade → `applyAggregateOnDelete()` → gap close |
-| Restore (soft) | restore cascade → `applyAggregateOnRestore()` |
+| Insert (new node)    | row INSERT → `applyAggregateOnCreate()` on `created`                                      |
+| Move (existing node) | `applyAggregateBeforeMove()` → structural SQL → `applyAggregateAfterMove()`               |
+| Delete (hard/soft)   | cascade → `applyAggregateOnDelete()` → gap close                                          |
+| Restore (soft)       | restore cascade → `applyAggregateOnRestore()`                                             |
 
 The split between `saving` (capture) and `saved` (apply) exists because the delta has to be computed from the *old* and *new* source values while both are still available, but the `UPDATE` must run after the row itself is written. The capture step diffs the source column:
 

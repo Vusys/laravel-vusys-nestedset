@@ -2,8 +2,8 @@
 
 `topK` stores the *K rows with the largest ranking value* anywhere in a node's subtree, as a JSON array of `[source_value, by_value]` pairs. It's the "best sellers per category" / "highest-revenue subordinates per manager" shape — a query that's awkward and expensive to compute on read, but cheap to store as a maintained column.
 
-| Kind   | Stored column type | Empty subtree | Maintenance |
-|--------|--------------------|---------------|-------------|
+| Kind   | Stored column type | Empty subtree | Maintenance            |
+| ------ | ------------------ | ------------- | ---------------------- |
 | `topK` | `json` (nullable)  | `NULL`        | Full subtree recompute |
 
 `topK` is **recompute-only**: a single deletion or move can promote a row that the stored list never tracked, so no signed delta exists. Every contributing mutation triggers a full subtree recompute over the ancestor chain (same path as the [collection aggregates](text-and-json.html)).

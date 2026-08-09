@@ -79,13 +79,13 @@ private function actAppendTo(Model&HasNestedSet $parent): void
 
 The position each operation targets:
 
-| Operation | `position` (a target `lft`) | Depth |
-|---|---|---|
-| `appendTo($parent)` | `parent.rgt` | `parent.depth + 1` |
-| `prependTo($parent)` | `parent.lft + 1` | `parent.depth + 1` |
-| `insertBefore($sibling)` | `sibling.lft` | `sibling.depth` |
-| `insertAfter($sibling)` | `sibling.rgt + 1` | `sibling.depth` |
-| `makeRoot()` | `max(rgt) + 1` in scope | `0` |
+| Operation                | `position` (a target `lft`) | Depth              |
+| ------------------------ | --------------------------- | ------------------ |
+| `appendTo($parent)`      | `parent.rgt`                | `parent.depth + 1` |
+| `prependTo($parent)`     | `parent.lft + 1`            | `parent.depth + 1` |
+| `insertBefore($sibling)` | `sibling.lft`               | `sibling.depth`    |
+| `insertAfter($sibling)`  | `sibling.rgt + 1`           | `sibling.depth`    |
+| `makeRoot()`             | `max(rgt) + 1` in scope     | `0`                |
 
 The `lockForUpdate: true` on the parent/sibling read is the concurrency guard — covered in [Concurrency & Transactions](concurrency.html#row-locks).
 
@@ -247,14 +247,14 @@ Now `A->appendToNode(B)->save()` — move `A` to be the last child of `B`. For a
 
 Applying the `CASE`s to every row:
 
-| Node | old `lft..rgt` | clause | new `lft..rgt` | new depth |
-|---|---|---|---|---|
-| Root | 1..12 | ELSE / ELSE | 1..12 | 0 |
-| A | 2..3 | subtree `+5` | **7..8** | 1→**2** |
-| B | 4..9 | `lft` bystander `-2`, `rgt` ELSE | **2..9** | 1 |
-| B1 | 5..6 | bystander `-2` | **3..4** | 2 |
-| B2 | 7..8 | bystander `-2` | **5..6** | 2 |
-| C | 10..11 | ELSE / ELSE | 10..11 | 1 |
+| Node | old `lft..rgt` | clause                           | new `lft..rgt` | new depth |
+| ---- | -------------- | -------------------------------- | -------------- | --------- |
+| Root | 1..12          | ELSE / ELSE                      | 1..12          | 0         |
+| A    | 2..3           | subtree `+5`                     | **7..8**       | 1→**2**   |
+| B    | 4..9           | `lft` bystander `-2`, `rgt` ELSE | **2..9**       | 1         |
+| B1   | 5..6           | bystander `-2`                   | **3..4**       | 2         |
+| B2   | 7..8           | bystander `-2`                   | **5..6**       | 2         |
+| C    | 10..11         | ELSE / ELSE                      | 10..11         | 1         |
 
 (`B.rgt = 9` falls outside the `2..8` band, so it stays at 9 — the subtree moved *into* B, widening it.) The result is a valid tree, reached in one statement:
 

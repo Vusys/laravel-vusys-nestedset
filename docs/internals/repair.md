@@ -38,12 +38,12 @@ public function countErrors(): array
 }
 ```
 
-| Category | Detection | Maps to invariant |
-|---|---|---|
-| `invalid_bounds` | `lft >= rgt` | `lft < rgt` for every node |
-| `duplicate_lft` | `GROUP BY (scope…, lft) HAVING COUNT(*) > 1` | `lft` unique within scope |
-| `duplicate_rgt` | `GROUP BY (scope…, rgt) HAVING COUNT(*) > 1` | `rgt` unique within scope |
-| `orphans` | self-LEFT-JOIN where `parent_id` points at a missing row | every non-root has a real parent |
+| Category         | Detection                                                | Maps to invariant                |
+| ---------------- | -------------------------------------------------------- | -------------------------------- |
+| `invalid_bounds` | `lft >= rgt`                                             | `lft < rgt` for every node       |
+| `duplicate_lft`  | `GROUP BY (scope…, lft) HAVING COUNT(*) > 1`             | `lft` unique within scope        |
+| `duplicate_rgt`  | `GROUP BY (scope…, rgt) HAVING COUNT(*) > 1`             | `rgt` unique within scope        |
+| `orphans`        | self-LEFT-JOIN where `parent_id` points at a missing row | every non-root has a real parent |
 
 The duplicate checks group on `(scope columns + bound)` so a value that repeats across two different trees in a multi-tree table is *not* flagged — each scope has its own independent `1..2N` sequence. The orphan query is the subtle one: it LEFT-JOINs the table to itself on `parent.id = child.parent_id` **and** equates every scope column across the two sides:
 
@@ -135,7 +135,7 @@ private function walkAssignPositions(array $roots, array $children, int $startLf
 ```
 
 > [!IMPORTANT]
-> The iterative shape is deliberate, not stylistic. The source comment notes that recursion bottomed out around xdebug's 256-frame default and PHP's ~10K-frame ceiling — both reachable on a "tall and skinny" corrupted tree, which is exactly the shape `fixTree()` exists to repair. Pushing the traversal onto a heap-allocated `$tasks` stack removes the limit. The pushing order (exit before children, children reversed) reproduces the same visit order a recursive walk would produce.
+> The iterative shape is deliberate, not stylistic. The source comment notes that recursion bottomed out around xdebug's 256-frame default and PHP's \~10K-frame ceiling — both reachable on a "tall and skinny" corrupted tree, which is exactly the shape `fixTree()` exists to repair. Pushing the traversal onto a heap-allocated `$tasks` stack removes the limit. The pushing order (exit before children, children reversed) reproduces the same visit order a recursive walk would produce.
 
 ### Bulk-writing the positions
 
@@ -149,7 +149,7 @@ $sql = "UPDATE {$this->table} "
     ."WHERE {$this->idCol} IN ({$idPlaceholders}){$scopeClause}";
 ```
 
-At the default `chunkSize = 500`, a 10K-row rebuild becomes ~20 `UPDATE`s instead of 10K. (This is the same chunked-CASE pattern the aggregate-repair path uses — see `AggregateDiffer`.) Scope predicates ride along in the `WHERE` so the rebuild can never escape the partition the builder was constructed for.
+At the default `chunkSize = 500`, a 10K-row rebuild becomes \~20 `UPDATE`s instead of 10K. (This is the same chunked-CASE pattern the aggregate-repair path uses — see `AggregateDiffer`.) Scope predicates ride along in the `WHERE` so the rebuild can never escape the partition the builder was constructed for.
 
 ### Subtree rebuilds and the size delta
 

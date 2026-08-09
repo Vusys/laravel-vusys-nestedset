@@ -79,15 +79,15 @@ Force-delete on a leaf (`rgt - lft === 1`) skips the descendant query entirely �
 
 Per-row Eloquent `deleted` / `restored` events **never fire** for cascaded descendants — only for the anchor. The package's typed cascade events close that gap so listeners (search indexes, cache invalidation, audit logs) can react to descendant changes:
 
-| Event | Fires when |
-|---|---|
-| `SubtreeSoftDeleting` | before the cascade UPDATE that propagates `deleted_at` |
-| `SubtreeSoftDeleted` | after the cascade UPDATE — carries `descendantIds` |
+| Event                      | Fires when                                                                        |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| `SubtreeSoftDeleting`      | before the cascade UPDATE that propagates `deleted_at`                            |
+| `SubtreeSoftDeleted`       | after the cascade UPDATE — carries `descendantIds`                                |
 | `SoftDeleteMarkerCaptured` | inside `restoring`, when the package buffers the marker used to match descendants |
-| `SubtreeRestoring` | before the restore-cascade UPDATE |
-| `SubtreeRestored` | after the restore-cascade UPDATE — carries `descendantIds` |
-| `SubtreeForceDeleting` | before the hard-delete cascade on `forceDelete()` of an interior node |
-| `SubtreeForceDeleted` | after the cascade DELETE — carries `descendantIds` |
+| `SubtreeRestoring`         | before the restore-cascade UPDATE                                                 |
+| `SubtreeRestored`          | after the restore-cascade UPDATE — carries `descendantIds`                        |
+| `SubtreeForceDeleting`     | before the hard-delete cascade on `forceDelete()` of an interior node             |
+| `SubtreeForceDeleted`      | after the cascade DELETE — carries `descendantIds`                                |
 
 `descendantIds` is the **strict** descendant set (excludes the anchor). The anchor itself fires Eloquent's normal `deleted` / `restored` events in addition to the `Subtree*` pair.
 
