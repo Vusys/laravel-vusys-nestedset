@@ -92,21 +92,21 @@ The scope filter on the max lookup matters too: without it, the second scope's f
 
 ### Backend differences in one place
 
-| Backend | Row locking | Notes |
-|---|---|---|
-| PostgreSQL | `FOR UPDATE` on rows; **not** on aggregates | `makeRoot` locks the max-`rgt` row, not `max()` |
-| MySQL / MariaDB | `FOR UPDATE` | `SET` evaluates left-to-right (why `depth` is set first in `moveNode`) |
-| SQLite | single-writer; locks are no-ops | the `lockForUpdate` flag short-circuits |
+| Backend         | Row locking                                 | Notes                                                                  |
+| --------------- | ------------------------------------------- | ---------------------------------------------------------------------- |
+| PostgreSQL      | `FOR UPDATE` on rows; **not** on aggregates | `makeRoot` locks the max-`rgt` row, not `max()`                        |
+| MySQL / MariaDB | `FOR UPDATE`                                | `SET` evaluates left-to-right (why `depth` is set first in `moveNode`) |
+| SQLite          | single-writer; locks are no-ops             | the `lockForUpdate` flag short-circuits                                |
 
 ## Aggregate locking — the recompute race {#aggregate-locking}
 
 Delta-maintained aggregates (SUM/COUNT) update ancestors with a single self-relative `UPDATE` (`col = col ± Δ`), which is safe under the engine's ordinary row locks. But the **recompute** path (MIN/MAX, raw filters, `fixAggregates`) is two statements — a `SELECT` of the recomputed value followed by an `UPDATE` — and two writers recomputing overlapping subtrees concurrently can interleave and drift. The `aggregate_locking` config flag (`config/nestedset.php`) controls whether the recompute `SELECT` takes a `FOR UPDATE` lock on the ancestor chain first:
 
-| Value | Behaviour |
-|---|---|
+| Value            | Behaviour                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `auto` (default) | Lock the ancestor chain only on the recompute path (MIN/MAX, `fixAggregates`). Delta-only updates rely on the engine's single-statement row locks — sufficient under default isolation on every supported backend. The right setting for nearly every app. **PG `READ COMMITTED` caveat:** the recompute `SELECT` computes the value and takes its `FOR UPDATE` lock in one statement, so the locked outer rows are re-fetched but the correlated descendant subqueries still read the statement snapshot — a descendant change committing in that window can leave a recomputed MIN/MAX value briefly stale until the next pass (`fixAggregates($anchor)` reconciles it). |
-| `always` | Lock the ancestor chain before *every* aggregate `UPDATE`, deltas included. Choose this under non-default isolation (e.g. PostgreSQL `REPEATABLE READ`) or if you've observed drift under concurrent load. |
-| `never` | No explicit locks. Marginally faster on the recompute path; can drift on PostgreSQL `READ COMMITTED` with concurrent recomputes against overlapping subtrees. |
+| `always`         | Lock the ancestor chain before *every* aggregate `UPDATE`, deltas included. Choose this under non-default isolation (e.g. PostgreSQL `REPEATABLE READ`) or if you've observed drift under concurrent load.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `never`          | No explicit locks. Marginally faster on the recompute path; can drift on PostgreSQL `READ COMMITTED` with concurrent recomputes against overlapping subtrees.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 The strategy split that this flag governs is described in [Aggregate Maintenance](aggregate-maintenance.html#the-four-families). The key takeaway: a *delta* is commutative and self-correcting under row locks; a *recompute* reads-then-writes and needs the chain held still in between.
 

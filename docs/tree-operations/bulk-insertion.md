@@ -57,10 +57,10 @@ Each row goes through a normal `save()`, so per-row `creating` / `saving` / `cre
 
 ## Performance
 
-| Backend | N=100 (vs naive) | N=1000 (vs naive) |
-|---|---|---|
-| SQLite | 18ms (3.2× faster) | 224ms (3.2× faster) |
-| MySQL 8 | 44ms (3.0× faster) | 302ms (6.0× faster) |
+| Backend | N=100 (vs naive)   | N=1000 (vs naive)    |
+| ------- | ------------------ | -------------------- |
+| SQLite  | 18ms (3.2× faster) | 224ms (3.2× faster)  |
+| MySQL 8 | 44ms (3.0× faster) | 302ms (6.0× faster)  |
 | MariaDB | 48ms (6.6× faster) | 451ms (11.9× faster) |
 
 The win widens as N grows because the naive path's gap-shift cost is O(N²). At N=10,000 on MariaDB the naive loop runs for many minutes; `bulkInsertTree` scales roughly linearly.

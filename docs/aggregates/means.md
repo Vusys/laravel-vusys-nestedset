@@ -68,12 +68,12 @@ $table->nestedSetAggregate('speed_harmean',  type: 'harmonic_mean');
 
 Each declaration allocates the user-facing display column **plus** two delta-maintainable companions:
 
-| Display column          | Companions allocated                              |
-|-------------------------|---------------------------------------------------|
-| `geometricMean(src)`    | `*__sum_log` (= `Σ LN(src)`), `*__count`          |
-| `harmonicMean(src)`     | `*__sum_recip` (= `Σ 1/src`), `*__count`          |
+| Display column       | Companions allocated                     |
+| -------------------- | ---------------------------------------- |
+| `geometricMean(src)` | `*__sum_log` (= `Σ LN(src)`), `*__count` |
+| `harmonicMean(src)`  | `*__sum_recip` (= `Σ 1/src`), `*__count` |
 
-The display column is a nullable `decimal(12, 4)`. The `__sum_log` / `__sum_recip` companions are `decimal(30, 10)` — wider fractional precision than the standard `decimal_sum` companion (4 digits) because `LN(x)` and `1/x` are irrational and 4 fractional digits accumulate visible rounding error across a deep subtree. The `__count` companion is the standard bigint sum_count shape, but counts only rows that actually contributed (positive for geometric, non-zero for harmonic), so the display formula uses the right `n`.
+The display column is a nullable `decimal(12, 4)`. The `__sum_log` / `__sum_recip` companions are `decimal(30, 10)` — wider fractional precision than the standard `decimal_sum` companion (4 digits) because `LN(x)` and `1/x` are irrational and 4 fractional digits accumulate visible rounding error across a deep subtree. The `__count` companion is the standard bigint sum\_count shape, but counts only rows that actually contributed (positive for geometric, non-zero for harmonic), so the display formula uses the right `n`.
 
 The display column reads NULL when the subtree contributed no rows — empty subtree, every contributor filtered out by the positivity / non-zero constraint, or harmonic with a zero reciprocal sum.
 
@@ -130,7 +130,7 @@ The companion `__count` is transform-aware — it counts only positive (geometri
 
 ## Numerical precision
 
-The geometric mean is computed via the `EXP(Σ LN(x) / n)` form (the standard for "compute it in SQL once and store it"). For source values that span more than ~13 orders of magnitude, `LN`-then-`EXP` rounds at the last significant fractional digit of `decimal(30, 10)`. For typical workloads — growth percentages, scale factors, ratios within a couple of orders of magnitude — this never matters. If your domain spans much wider ranges, fall back to `withFreshAggregates()` against the native `EXP(AVG(LN(col)))` SQL, which uses the database's full floating-point precision.
+The geometric mean is computed via the `EXP(Σ LN(x) / n)` form (the standard for "compute it in SQL once and store it"). For source values that span more than \~13 orders of magnitude, `LN`-then-`EXP` rounds at the last significant fractional digit of `decimal(30, 10)`. For typical workloads — growth percentages, scale factors, ratios within a couple of orders of magnitude — this never matters. If your domain spans much wider ranges, fall back to `withFreshAggregates()` against the native `EXP(AVG(LN(col)))` SQL, which uses the database's full floating-point precision.
 
 The harmonic mean is computed as `count / Σ(1/x)`. Floating-point precision on `decimal(30, 10)` is more than enough for the realistic range — the precision concerns of the geometric mean don't have a direct analog here.
 

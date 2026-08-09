@@ -30,14 +30,14 @@ echo $electronics->toAsciiTree(new AsciiOptions(unicode: false));
 
 `AsciiOptions` knobs:
 
-| Field | Type | Default | What it does |
-| --- | --- | --- | --- |
-| `unicode` | `bool` | `true` | Box-drawing glyphs (`├ └ │`) vs plain ASCII (`\|-- \`-- \|   `). |
-| `label` | `Closure(Model): string\|int\|float\|null` | `fn ($n) => $n->name` | Render each row. Falls back to the primary key if the closure throws or returns null. |
-| `showDepth` | `bool` | `false` | Append `(depth=N)` to each label. |
-| `maxDepth` | `?int` | `null` | Truncate beyond depth N (counted from the export root). Composes with `filter` — the stricter depth wins. |
-| `withTrashed` | `bool` | `false` | Include soft-deleted descendants. |
-| `filter` | `?WalkFilter` | `null` | Predicate-based pruning. See [Walking Subtrees → Pruning with `WalkFilter`](walking.md#pruning-with-walkfilter). |
+| Field         | Type                                       | Default               | What it does                                                                                                     |
+| ------------- | ------------------------------------------ | --------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `unicode`     | `bool`                                     | `true`                | Box-drawing glyphs (`├ └ │`) vs plain ASCII (`\|-- \`-- \|   \`).                                                |
+| `label`       | `Closure(Model): string\|int\|float\|null` | `fn ($n) => $n->name` | Render each row. Falls back to the primary key if the closure throws or returns null.                            |
+| `showDepth`   | `bool`                                     | `false`               | Append `(depth=N)` to each label.                                                                                |
+| `maxDepth`    | `?int`                                     | `null`                | Truncate beyond depth N (counted from the export root). Composes with `filter` — the stricter depth wins.        |
+| `withTrashed` | `bool`                                     | `false`               | Include soft-deleted descendants.                                                                                |
+| `filter`      | `?WalkFilter`                              | `null`                | Predicate-based pruning. See [Walking Subtrees → Pruning with `WalkFilter`](walking.md#pruning-with-walkfilter). |
 
 ## Mermaid
 
@@ -57,7 +57,7 @@ echo $electronics->toMermaid();
 //     n3 --> n5
 ```
 
-Paste the output into a markdown ` ```mermaid ` block and GitHub renders it. Direction defaults to `TD` (top-down); pass `LR`, `BT`, or `RL` to flip.
+Paste the output into a markdown ```` ```mermaid ```` block and GitHub renders it. Direction defaults to `TD` (top-down); pass `LR`, `BT`, or `RL` to flip.
 
 Aggregate columns can ride along on each label:
 
@@ -72,14 +72,14 @@ $electronics->toMermaid(new MermaidOptions(
 
 `MermaidOptions` knobs:
 
-| Field | Type | Default | What it does |
-| --- | --- | --- | --- |
-| `direction` | `'TD'\|'LR'\|'BT'\|'RL'` | `'TD'` | Graph direction. |
-| `label` | `Closure(Model): ...` | `fn ($n) => $n->name` | Per-node label. |
-| `showId` | `bool` | `false` | Append `(id=N)` to each label. |
-| `showAggregates` | `list<string>` | `[]` | Aggregate columns appended as extra label lines. |
-| `withTrashed` | `bool` | `false` | Include soft-deleted descendants. |
-| `filter` | `?WalkFilter` | `null` | Predicate-based pruning. See [Walking Subtrees → Pruning with `WalkFilter`](walking.md#pruning-with-walkfilter). |
+| Field            | Type                     | Default               | What it does                                                                                                     |
+| ---------------- | ------------------------ | --------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `direction`      | `'TD'\|'LR'\|'BT'\|'RL'` | `'TD'`                | Graph direction.                                                                                                 |
+| `label`          | `Closure(Model): ...`    | `fn ($n) => $n->name` | Per-node label.                                                                                                  |
+| `showId`         | `bool`                   | `false`               | Append `(id=N)` to each label.                                                                                   |
+| `showAggregates` | `list<string>`           | `[]`                  | Aggregate columns appended as extra label lines.                                                                 |
+| `withTrashed`    | `bool`                   | `false`               | Include soft-deleted descendants.                                                                                |
+| `filter`         | `?WalkFilter`            | `null`                | Predicate-based pruning. See [Walking Subtrees → Pruning with `WalkFilter`](walking.md#pruning-with-walkfilter). |
 
 Special characters in labels are HTML-escaped (`"` → `&quot;`, `<` → `&lt;`, newlines → `<br/>`). UUID primary keys hash to a short alphanumeric prefix (`n4a91f2c0`) so the identifiers stay valid Mermaid syntax.
 
@@ -140,13 +140,13 @@ The method is named `toJsonTree()` (not `toJson()`) because Eloquent already def
 
 `JsonOptions` knobs:
 
-| Field | Type | Default | What it does |
-| --- | --- | --- | --- |
-| `label` | `Closure(Model): ...` | `fn ($n) => $n->name` | Per-node label. |
-| `extras` | `list<string>` | `[]` | Raw column names to copy onto each payload (e.g. `['lft', 'rgt', 'depth']`). |
-| `childrenKey` | `string` | `'children'` | Rename the children array key (`'items'`, `'nodes'`, …). |
-| `withTrashed` | `bool` | `false` | Include soft-deleted descendants. |
-| `filter` | `?WalkFilter` | `null` | Predicate-based pruning. See [Walking Subtrees → Pruning with `WalkFilter`](walking.md#pruning-with-walkfilter). |
+| Field         | Type                  | Default               | What it does                                                                                                     |
+| ------------- | --------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `label`       | `Closure(Model): ...` | `fn ($n) => $n->name` | Per-node label.                                                                                                  |
+| `extras`      | `list<string>`        | `[]`                  | Raw column names to copy onto each payload (e.g. `['lft', 'rgt', 'depth']`).                                     |
+| `childrenKey` | `string`              | `'children'`          | Rename the children array key (`'items'`, `'nodes'`, …).                                                         |
+| `withTrashed` | `bool`                | `false`               | Include soft-deleted descendants.                                                                                |
+| `filter`      | `?WalkFilter`         | `null`                | Predicate-based pruning. See [Walking Subtrees → Pruning with `WalkFilter`](walking.md#pruning-with-walkfilter). |
 
 ## JSON import — `fromJsonTree`
 
@@ -178,13 +178,13 @@ The payload may be a single node dict (one tree) or a list of dicts (a forest); 
 
 `JsonImportOptions` knobs:
 
-| Field | Type | Default | What it does |
-| --- | --- | --- | --- |
-| `childrenKey` | `string` | `'children'` | Name of the children array key in the payload. Must match the export's `childrenKey`. |
-| `strict` | `bool` | `true` | Reject unknown columns (not on the model and not in `ignoreColumns`). Set to `false` to silently drop extras like `id`, `lft`, exported `extras` you don't want to import. |
-| `transform` | `Closure(array, int): array \| null` | `null` | Rewrite each row's attributes before insert. Receives raw payload + destination depth (0 = clone root). Useful for namespacing slugs, defaulting columns, or stripping metadata. |
-| `includeKeys` | `bool` | `false` | When `true`, preserve `id` values from the payload instead of regenerating them. Collisions throw `JsonImportKeyCollisionException`. |
-| `ignoreColumns` | `list<string>` | `['lft', 'rgt', 'depth', 'parent_id']` | Columns silently dropped from each row before insert. |
+| Field           | Type                                 | Default                                | What it does                                                                                                                                                                     |
+| --------------- | ------------------------------------ | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `childrenKey`   | `string`                             | `'children'`                           | Name of the children array key in the payload. Must match the export's `childrenKey`.                                                                                            |
+| `strict`        | `bool`                               | `true`                                 | Reject unknown columns (not on the model and not in `ignoreColumns`). Set to `false` to silently drop extras like `id`, `lft`, exported `extras` you don't want to import.       |
+| `transform`     | `Closure(array, int): array \| null` | `null`                                 | Rewrite each row's attributes before insert. Receives raw payload + destination depth (0 = clone root). Useful for namespacing slugs, defaulting columns, or stripping metadata. |
+| `includeKeys`   | `bool`                               | `false`                                | When `true`, preserve `id` values from the payload instead of regenerating them. Collisions throw `JsonImportKeyCollisionException`.                                             |
+| `ignoreColumns` | `list<string>`                       | `['lft', 'rgt', 'depth', 'parent_id']` | Columns silently dropped from each row before insert.                                                                                                                            |
 
 Invalid payload shape (missing children array, non-string keys, non-array root) throws `InvalidJsonTreeException`. Strict mode also throws on unknown columns. The whole import runs in one transaction — partial inserts never escape on failure.
 
@@ -243,4 +243,4 @@ If the `label` closure throws or returns `null` / `''` / a non-stringable object
 
 ### Large trees
 
-The exporters are debug / UI tools, not analytics pipelines — they load the whole subtree into memory. Use `maxDepth` for ASCII rendering, or paginate by anchor for forests larger than ~10k nodes.
+The exporters are debug / UI tools, not analytics pipelines — they load the whole subtree into memory. Use `maxDepth` for ASCII rendering, or paginate by anchor for forests larger than \~10k nodes.

@@ -150,20 +150,20 @@ No `formatPath()`, no Stringable wrapper, no breadcrumb helper — `explode` han
 
 ## Validation and exceptions
 
-| Condition | Exception | Default |
-|---|---|---|
-| Segment is the empty string | `EmptyPathSegmentException` | Throw |
-| Segment contains the separator | `InvalidPathSegmentException` | Throw, unless `rejectSeparatorInSegment(false)` → silently strip |
-| Two siblings produce the same segment under one parent | `DuplicatePathSegmentException` | Throw, unless `uniquePerParent(false)` |
-| Computed path exceeds `maxLength` | `PathTooLongException` | Throw |
-| Builder is non-deterministic (dev only) | `NonDeterministicPathSegmentException` | Throw when `APP_DEBUG=true` |
-| Attribute declares zero or multiple sources | `MaterialisedPathConfigurationException` | Throw at boot |
+| Condition                                              | Exception                                | Default                                                          |
+| ------------------------------------------------------ | ---------------------------------------- | ---------------------------------------------------------------- |
+| Segment is the empty string                            | `EmptyPathSegmentException`              | Throw                                                            |
+| Segment contains the separator                         | `InvalidPathSegmentException`            | Throw, unless `rejectSeparatorInSegment(false)` → silently strip |
+| Two siblings produce the same segment under one parent | `DuplicatePathSegmentException`          | Throw, unless `uniquePerParent(false)`                           |
+| Computed path exceeds `maxLength`                      | `PathTooLongException`                   | Throw                                                            |
+| Builder is non-deterministic (dev only)                | `NonDeterministicPathSegmentException`   | Throw when `APP_DEBUG=true`                                      |
+| Attribute declares zero or multiple sources            | `MaterialisedPathConfigurationException` | Throw at boot                                                    |
 
 Per-parent uniqueness comparison is byte-exact (`strcmp`). For case-insensitive collision detection, lowercase inside the segment builder itself (`MaterialisedPath::from(fn ($n) => Str::lower(Str::slug($n->name)))`). No comparator config knob — collation semantics are too varied to wrap.
 
 ## Repair
 
-`fixMaterialisedPaths()` walks the tree by parent_id and rebuilds every declared column for every row. Useful when the structural tree is consistent but a path column has drifted — manual SQL edits, pre-feature backfill rows, or a bulk job run inside `withoutMaterialisedPathMaintenance()`.
+`fixMaterialisedPaths()` walks the tree by parent\_id and rebuilds every declared column for every row. Useful when the structural tree is consistent but a path column has drifted — manual SQL edits, pre-feature backfill rows, or a bulk job run inside `withoutMaterialisedPathMaintenance()`.
 
 ```php
 Category::fixMaterialisedPaths();                      // every declared column
@@ -192,17 +192,17 @@ The bypass counter is reentrant. Wrapping wrappers compose. No async-by-default 
 
 ## Performance
 
-| Operation | With N declared paths |
-|---|---|
-| Insert leaf, no key-dependent paths | unchanged — paths set inline at INSERT |
-| Insert leaf, K key-dependent paths | + K UPDATEs (one per key-dep column) |
-| Move leaf | + up to N UPDATEs, leaf subtree is one row → cheap; unchanged paths skipped |
-| Move subtree | + up to N UPDATEs, each bounded by subtree size; unchanged paths skipped |
-| Rename source attribute touching M paths | + M batched UPDATEs (one per column, subtree-bounded) |
-| Sibling reorder | unchanged — no path columns touched |
-| Subtree clone | + path generation inside the existing clone transaction |
-| `fixTree()` | + (declared paths × N) recomputes, batched per column |
-| Breadcrumb fetch | 0 DB hits — `explode` the column |
+| Operation                                | With N declared paths                                                       |
+| ---------------------------------------- | --------------------------------------------------------------------------- |
+| Insert leaf, no key-dependent paths      | unchanged — paths set inline at INSERT                                      |
+| Insert leaf, K key-dependent paths       | + K UPDATEs (one per key-dep column)                                        |
+| Move leaf                                | + up to N UPDATEs, leaf subtree is one row → cheap; unchanged paths skipped |
+| Move subtree                             | + up to N UPDATEs, each bounded by subtree size; unchanged paths skipped    |
+| Rename source attribute touching M paths | + M batched UPDATEs (one per column, subtree-bounded)                       |
+| Sibling reorder                          | unchanged — no path columns touched                                         |
+| Subtree clone                            | + path generation inside the existing clone transaction                     |
+| `fixTree()`                              | + (declared paths × N) recomputes, batched per column                       |
+| Breadcrumb fetch                         | 0 DB hits — `explode` the column                                            |
 
 One extra UPDATE per changed path per mutation, all bounded by subtree size, all single-statement.
 

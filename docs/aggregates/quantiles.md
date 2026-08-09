@@ -72,11 +72,11 @@ A subtree with a single value returns that value. An empty subtree (no non-null 
 
 The package emits the right SQL per driver — same semantics across all four:
 
-| Backend         | Shape                                              | Notes |
-|-----------------|----------------------------------------------------|-------|
-| PostgreSQL      | `PERCENTILE_CONT(p) WITHIN GROUP (ORDER BY src)`   | Native ordered-set aggregate. |
-| MySQL, SQLite   | `ROW_NUMBER()` window subquery + interpolation     | Picks the two flanking values and interpolates inline. |
-| MariaDB         | `JSON_ARRAYAGG` + `JSON_VALUE` correlated subquery | MariaDB rejects derived tables that reference the outer query's columns; the JSON form is the portable workaround. |
+| Backend       | Shape                                              | Notes                                                                                                              |
+| ------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| PostgreSQL    | `PERCENTILE_CONT(p) WITHIN GROUP (ORDER BY src)`   | Native ordered-set aggregate.                                                                                      |
+| MySQL, SQLite | `ROW_NUMBER()` window subquery + interpolation     | Picks the two flanking values and interpolates inline.                                                             |
+| MariaDB       | `JSON_ARRAYAGG` + `JSON_VALUE` correlated subquery | MariaDB rejects derived tables that reference the outer query's columns; the JSON form is the portable workaround. |
 
 Each quantile reads as one correlated subquery per outer row — so requesting `n` percentiles over `m` outer rows costs `n × m` subqueries. A leaf row's quantile short-circuits to the source value itself (no subquery), so a tree where you only care about non-leaf nodes pays predictably less than a flat table of leaves.
 
@@ -98,12 +98,12 @@ Category::query()
 
 ## When to reach for quantiles vs. stored aggregates
 
-| Question                                      | Use                                         |
-|-----------------------------------------------|---------------------------------------------|
-| Average / total / count                       | Stored aggregate column (delta-maintained). |
-| Min / max / variance / stddev                 | Stored aggregate column.                    |
-| Median, p95, IQR, arbitrary percentile        | `withFreshAggregates([... median / percentile ...])`. |
-| Quartile breakdown for a dashboard            | `withFreshAggregates([...Aggregate::quartiles('col')])`. |
+| Question                               | Use                                                      |
+| -------------------------------------- | -------------------------------------------------------- |
+| Average / total / count                | Stored aggregate column (delta-maintained).              |
+| Min / max / variance / stddev          | Stored aggregate column.                                 |
+| Median, p95, IQR, arbitrary percentile | `withFreshAggregates([... median / percentile ...])`.    |
+| Quartile breakdown for a dashboard     | `withFreshAggregates([...Aggregate::quartiles('col')])`. |
 
 Stored aggregates are effectively free per read; quantiles cost one correlated subquery per outer row per requested percentile. For dashboards that surface percentiles next to means, ship both in a single `withFreshAggregates()` call — the percentile cost dominates either way, so add the stored-column reads to the same query rather than paying two round-trips.
 

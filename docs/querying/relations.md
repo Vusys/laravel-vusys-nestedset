@@ -2,12 +2,12 @@
 
 `NodeTrait` registers four relations on every node:
 
-| Relation | Type | Returns |
-|---|---|---|
-| `parent` | `BelongsTo` | The immediate parent, or `null` for a root |
-| `children` | `HasMany` | Immediate children (one level down) |
-| `ancestors` | custom (eager-loadable) | Every node above this one |
-| `descendants` | custom (eager-loadable) | Every node below this one |
+| Relation      | Type                    | Returns                                    |
+| ------------- | ----------------------- | ------------------------------------------ |
+| `parent`      | `BelongsTo`             | The immediate parent, or `null` for a root |
+| `children`    | `HasMany`               | Immediate children (one level down)        |
+| `ancestors`   | custom (eager-loadable) | Every node above this one                  |
+| `descendants` | custom (eager-loadable) | Every node below this one                  |
 
 ```php
 $laptops->parent->name;             // 'Computers'

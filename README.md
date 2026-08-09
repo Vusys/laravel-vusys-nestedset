@@ -106,7 +106,7 @@ See the [Installation guide](https://vusys.github.io/laravel-nestedset/getting-s
 
 ## Documentation
 
-Full documentation lives at **<https://vusys.github.io/laravel-nestedset/>**.
+Full documentation lives at **[https://vusys.github.io/laravel-nestedset/](https://vusys.github.io/laravel-nestedset/)**.
 
 - **Getting Started** — [Introduction](https://vusys.github.io/laravel-nestedset/) · [Installation](https://vusys.github.io/laravel-nestedset/getting-started/installation.html) · [Migration](https://vusys.github.io/laravel-nestedset/getting-started/migration.html) · [Primary Keys](https://vusys.github.io/laravel-nestedset/getting-started/primary-keys.html) · [Model Setup](https://vusys.github.io/laravel-nestedset/getting-started/model-setup.html)
 - **Tree Operations** — [Inserting & Moving](https://vusys.github.io/laravel-nestedset/tree-operations/inserting.html) · [Reordering Siblings](https://vusys.github.io/laravel-nestedset/tree-operations/reordering.html) · [Soft Deletes](https://vusys.github.io/laravel-nestedset/tree-operations/soft-deletes.html) · [Bulk Insertion](https://vusys.github.io/laravel-nestedset/tree-operations/bulk-insertion.html) · [Cloning Subtrees](https://vusys.github.io/laravel-nestedset/tree-operations/cloning.html) · [Materialised Paths](https://vusys.github.io/laravel-nestedset/tree-operations/materialised-paths.html)
@@ -133,8 +133,7 @@ All four must pass on CI before merge.
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for the release history and the pre-1.0
-backwards-compatibility breaks called out per version.
+See [CHANGELOG.md](CHANGELOG.md) for the release history and the pre-1.0 backwards-compatibility breaks called out per version.
 
 ## License
 

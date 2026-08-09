@@ -29,16 +29,16 @@ public function whereDescendantOf(NodeBounds $bounds, bool $andSelf = false): st
 
 The full predicate table:
 
-| Scope | SQL predicate | Meaning |
-|---|---|---|
-| `whereDescendantOf($b)` | `lft > b.lft AND rgt < b.rgt` | Strict descendants. |
-| `whereDescendantOrSelf($b)` | `lft BETWEEN b.lft AND b.rgt` | Descendants + self. |
-| `whereAncestorOf($b)` | `lft < b.lft AND rgt > b.rgt` | Strict ancestors. |
-| `whereAncestorOrSelf($b)` | `lft <= b.lft AND rgt >= b.rgt` | Ancestors + self. |
-| `whereIsRoot()` | `parent_id IS NULL` | Top-level nodes. |
-| `whereIsLeaf()` | `rgt = lft + 1` | No children. |
-| `whereIsAfter($b)` | `lft > b.rgt` | Entirely to the right. |
-| `whereIsBefore($b)` | `rgt < b.lft` | Entirely to the left. |
+| Scope                       | SQL predicate                   | Meaning                |
+| --------------------------- | ------------------------------- | ---------------------- |
+| `whereDescendantOf($b)`     | `lft > b.lft AND rgt < b.rgt`   | Strict descendants.    |
+| `whereDescendantOrSelf($b)` | `lft BETWEEN b.lft AND b.rgt`   | Descendants + self.    |
+| `whereAncestorOf($b)`       | `lft < b.lft AND rgt > b.rgt`   | Strict ancestors.      |
+| `whereAncestorOrSelf($b)`   | `lft <= b.lft AND rgt >= b.rgt` | Ancestors + self.      |
+| `whereIsRoot()`             | `parent_id IS NULL`             | Top-level nodes.       |
+| `whereIsLeaf()`             | `rgt = lft + 1`                 | No children.           |
+| `whereIsAfter($b)`          | `lft > b.rgt`                   | Entirely to the right. |
+| `whereIsBefore($b)`         | `rgt < b.lft`                   | Entirely to the left.  |
 
 Plus the ordering/shaping helpers: `defaultOrder()` (`ORDER BY lft ASC` — which is pre-order traversal, i.e. the natural tree order), `reversed()`, `withoutRoot()`, `leaves()`, `root()`, and `withDepth()`. Each mutates the builder in place and returns `static`, so the tree scopes chain with ordinary Eloquent `where`s.
 
@@ -112,8 +112,8 @@ public function addConstraints(): void
 Each relation provides three direction-specific seams:
 
 - **`addConstraints()`** — the single-model case: `whereDescendantOf` / `whereAncestorOf` on the parent's bounds.
-- **`addEagerConstraint()`** — the eager-load (`with('descendants')`) case. It `orWhere`s one bounds clause per model so a whole set of parents loads in one query: ```php $query->orWhere(static function (Builder $q) use (...) { $q->where($lftColumn, '>', $bounds->lft) ->where($rgtColumn, '<', $bounds->rgt); // + scope predicates }); ```
-- **`matches()`** — the in-PHP step that attaches each loaded row to the right parent, reusing `NodeBounds::contains()`: ```php return $model->getBounds()->contains($related->getBounds()); ```
+- **`addEagerConstraint()`** — the eager-load (`with('descendants')`) case. It `orWhere`s one bounds clause per model so a whole set of parents loads in one query: `php $query->orWhere(static function (Builder $q) use (...) { $q->where($lftColumn, '>', $bounds->lft) ->where($rgtColumn, '<', $bounds->rgt); // + scope predicates }); `
+- **`matches()`** — the in-PHP step that attaches each loaded row to the right parent, reusing `NodeBounds::contains()`: `php return $model->getBounds()->contains($related->getBounds()); `
 - **`relationExistenceCondition()`** — the SQL for `has()` / `whereHas()` subqueries. Descendants: `{hash}.lft between {table}.lft + 1 and {table}.rgt`; ancestors: `{table}.rgt between {hash}.lft and {hash}.rgt and {table}.lft <> {hash}.lft`.
 
 `AncestorsRelation` is the mirror image — `whereAncestorOf`, the inverted `orWhere`, and `contains()` with the arguments swapped (`$related` contains `$model`).
@@ -141,7 +141,7 @@ protected function runSelect()
 }
 ```
 
-MariaDB's planner would otherwise rewrite the derived-table join into a LATERAL DERIVED and lose the materialise-once advantage (~3× slower). The override is deliberately a single boolean flag consulted in `runSelect()` — the funnel for `get()`/`paginate()`/`chunk()` — so the package can coax the planner for one statement without mutating session state. This backend-specific shaping is part of the same family as `TreeExpression`'s dialect handling: the bounds queries are portable, but the *fast* form of a subtree subquery differs per backend (LATERAL on PostgreSQL/MySQL, derived-table on MariaDB, correlated fallback on SQLite).
+MariaDB's planner would otherwise rewrite the derived-table join into a LATERAL DERIVED and lose the materialise-once advantage (\~3× slower). The override is deliberately a single boolean flag consulted in `runSelect()` — the funnel for `get()`/`paginate()`/`chunk()` — so the package can coax the planner for one statement without mutating session state. This backend-specific shaping is part of the same family as `TreeExpression`'s dialect handling: the bounds queries are portable, but the *fast* form of a subtree subquery differs per backend (LATERAL on PostgreSQL/MySQL, derived-table on MariaDB, correlated fallback on SQLite).
 
 ## Where to go next
 

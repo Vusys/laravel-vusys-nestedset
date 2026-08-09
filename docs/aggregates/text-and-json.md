@@ -2,13 +2,13 @@
 
 Beyond the SQL-standard SUM / COUNT / AVG / MIN / MAX, the package supports four collection aggregates — useful when the question is not "what's the total" but "which distinct values are in this subtree" or "give me a JSON blob of descendant data".
 
-| Kind                                            | Stored column type | Empty subtree | Maintenance |
-|-------------------------------------------------|--------------------|---------------|-------------|
-| `distinctCount`                                 | `bigInteger(0)`    | `0`           | Full subtree recompute |
-| `stringAgg`                                     | `text` (nullable)  | `NULL`        | Full subtree recompute |
-| `stringAgg(...)->distinct()`                    | `text` (nullable)  | `NULL`        | Full subtree recompute |
-| `jsonAgg` (scalar / list / assoc)               | `json` (nullable)  | `NULL`        | Full subtree recompute |
-| `jsonObjectAgg`                                 | `json` (nullable)  | `NULL`        | Full subtree recompute |
+| Kind                              | Stored column type | Empty subtree | Maintenance            |
+| --------------------------------- | ------------------ | ------------- | ---------------------- |
+| `distinctCount`                   | `bigInteger(0)`    | `0`           | Full subtree recompute |
+| `stringAgg`                       | `text` (nullable)  | `NULL`        | Full subtree recompute |
+| `stringAgg(...)->distinct()`      | `text` (nullable)  | `NULL`        | Full subtree recompute |
+| `jsonAgg` (scalar / list / assoc) | `json` (nullable)  | `NULL`        | Full subtree recompute |
+| `jsonObjectAgg`                   | `json` (nullable)  | `NULL`        | Full subtree recompute |
 
 All four are **recompute-only**: every contributing mutation triggers a full subtree recompute over the ancestor chain. There is no delta fast path (the way SUM/COUNT have one) because removing a value from the subtree can't be expressed as a signed delta on the aggregate.
 
@@ -87,13 +87,13 @@ Aggregate::stringAgg('tag')->distinct()->into('distinct_tags');
 
 JSON array of values. Three input shapes:
 
-| `$source`                                  | Resulting JSON element shape                                       |
-|--------------------------------------------|--------------------------------------------------------------------|
-| `'id'`                                     | Scalar values: `[1, 2, 3]`                                         |
-| `['id', 'name']` (list)                    | Objects keyed by column name: `[{"id":1,"name":…}, …]`             |
-| `['key' => 'id', 'label' => 'name']`       | Objects keyed by the array's keys: `[{"key":1,"label":…}, …]`      |
+| `$source`                            | Resulting JSON element shape                                  |
+| ------------------------------------ | ------------------------------------------------------------- |
+| `'id'`                               | Scalar values: `[1, 2, 3]`                                    |
+| `['id', 'name']` (list)              | Objects keyed by column name: `[{"id":1,"name":…}, …]`        |
+| `['key' => 'id', 'label' => 'name']` | Objects keyed by the array's keys: `[{"key":1,"label":…}, …]` |
 
-The assoc form is the escape hatch when the JSON key needs to differ from the column name (snake_case → camelCase, renaming for a frontend contract, etc.).
+The assoc form is the escape hatch when the JSON key needs to differ from the column name (snake\_case → camelCase, renaming for a frontend contract, etc.).
 
 ```php
 // Declare the cast on the model:
@@ -147,5 +147,5 @@ $table->nestedSetAggregate('slug_to_name',      type: 'json');
 ```
 
 - `distinct_count` → `bigInteger($column)->default(0)`
-- `string_agg`     → `text($column)->nullable()`
-- `json`           → `json($column)->nullable()` — Laravel routes this to `jsonb` on PG, `json` on MySQL/MariaDB, and `text` on SQLite automatically.
+- `string_agg` → `text($column)->nullable()`
+- `json` → `json($column)->nullable()` — Laravel routes this to `jsonb` on PG, `json` on MySQL/MariaDB, and `text` on SQLite automatically.

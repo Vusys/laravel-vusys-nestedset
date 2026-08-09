@@ -26,26 +26,26 @@ Schema::create('categories', function (Blueprint $table): void {
 
 The macro picks the column shape from the `type:` argument. Default is `'sum_count'`. Every type that names a companion-derived family (Avg, Variance, Stddev, WeightedAvg, BoolOr, BoolAnd, GeometricMean, HarmonicMean) **automatically allocates the matching companion columns** alongside the user-facing column — you only ever name the display column in the migration; the companions appear and disappear with the matching macro call.
 
-| `type:` value      | Used for                                  | Display column shape         | Nullable / default     | Companions auto-allocated      |
-|--------------------|-------------------------------------------|------------------------------|------------------------|--------------------------------|
-| `'sum_count'` *(default)* | `sum`, `count`                     | `bigint`                     | NOT NULL, default `0`  | —                              |
-| `'avg'`            | `avg`                                     | `decimal(12, 4)`             | nullable               | `*__sum`, `*__count`           |
-| `'min_max'`        | `min`, `max`                              | `bigint`                     | nullable               | —                              |
-| `'variance'`       | `variance`                                | `decimal(30, 6)`             | nullable               | `*__sum`, `*__sum_sq`, `*__count` |
-| `'stddev'`         | `stddev`                                  | `decimal(30, 6)`             | nullable               | `*__sum`, `*__sum_sq`, `*__count` |
-| `'weighted_avg'`   | `weightedAvg`                             | `decimal(12, 4)`             | nullable               | `*__sum_wx`, `*__sum_w`        |
-| `'bool_or'`        | `boolOr`                                  | `boolean` (backend-native)   | nullable               | `*__sum`, `*__count`           |
-| `'bool_and'`       | `boolAnd`                                 | `boolean` (backend-native)   | nullable               | `*__sum`, `*__count`           |
-| `'geometric_mean'` | `geometricMean`                           | `decimal(12, 4)`             | nullable               | `*__sum_log`, `*__count`       |
-| `'harmonic_mean'`  | `harmonicMean`                            | `decimal(12, 4)`             | nullable               | `*__sum_recip`, `*__count`     |
-| `'bitwise'`        | `bitOr`, `bitAnd`, `bitXor`               | `bigint`                     | nullable               | —                              |
-| `'distinct_count'` | `distinctCount`                           | `bigint`                     | NOT NULL, default `0`  | —                              |
-| `'string_agg'`     | `stringAgg`                               | `text`                       | nullable               | —                              |
-| `'json'`           | `jsonAgg`, `jsonObjectAgg`                | `json` / `jsonb` (per backend) | nullable             | —                              |
+| `type:` value             | Used for                    | Display column shape           | Nullable / default    | Companions auto-allocated         |
+| ------------------------- | --------------------------- | ------------------------------ | --------------------- | --------------------------------- |
+| `'sum_count'` *(default)* | `sum`, `count`              | `bigint`                       | NOT NULL, default `0` | —                                 |
+| `'avg'`                   | `avg`                       | `decimal(12, 4)`               | nullable              | `*__sum`, `*__count`              |
+| `'min_max'`               | `min`, `max`                | `bigint`                       | nullable              | —                                 |
+| `'variance'`              | `variance`                  | `decimal(30, 6)`               | nullable              | `*__sum`, `*__sum_sq`, `*__count` |
+| `'stddev'`                | `stddev`                    | `decimal(30, 6)`               | nullable              | `*__sum`, `*__sum_sq`, `*__count` |
+| `'weighted_avg'`          | `weightedAvg`               | `decimal(12, 4)`               | nullable              | `*__sum_wx`, `*__sum_w`           |
+| `'bool_or'`               | `boolOr`                    | `boolean` (backend-native)     | nullable              | `*__sum`, `*__count`              |
+| `'bool_and'`              | `boolAnd`                   | `boolean` (backend-native)     | nullable              | `*__sum`, `*__count`              |
+| `'geometric_mean'`        | `geometricMean`             | `decimal(12, 4)`               | nullable              | `*__sum_log`, `*__count`          |
+| `'harmonic_mean'`         | `harmonicMean`              | `decimal(12, 4)`               | nullable              | `*__sum_recip`, `*__count`        |
+| `'bitwise'`               | `bitOr`, `bitAnd`, `bitXor` | `bigint`                       | nullable              | —                                 |
+| `'distinct_count'`        | `distinctCount`             | `bigint`                       | NOT NULL, default `0` | —                                 |
+| `'string_agg'`            | `stringAgg`                 | `text`                         | nullable              | —                                 |
+| `'json'`                  | `jsonAgg`, `jsonObjectAgg`  | `json` / `jsonb` (per backend) | nullable              | —                                 |
 
 There are also three internal companion shapes — `'sum_sq'`, `'decimal_sum'`, `'high_precision_sum'` — that you'll see referenced in error messages but never pass yourself. The macro picks the right one for each companion based on the parent type.
 
-The pattern is consistent: **non-null with `0` default** for the count-shaped kinds (sum, count, distinct_count) where "no contributors" naturally means zero; **nullable** for every other kind where "no contributors" should be distinguishable from "every contributor returned zero" (matching the SQL convention that `AVG`, `MIN`, `MAX`, `BIT_OR`, etc. on an empty set return `NULL`).
+The pattern is consistent: **non-null with `0` default** for the count-shaped kinds (sum, count, distinct\_count) where "no contributors" naturally means zero; **nullable** for every other kind where "no contributors" should be distinguishable from "every contributor returned zero" (matching the SQL convention that `AVG`, `MIN`, `MAX`, `BIT_OR`, etc. on an empty set return `NULL`).
 
 Quantile aggregates (`median`, `percentile`) are read-only via `withFreshAggregates()` and have no `type:` — they cannot be stored as a column. See [Quantiles](quantiles.html).
 

@@ -32,12 +32,12 @@ Use `withTrashed: true` when you're auditing against a `Category::withTrashed()-
 
 ## When to reach for `freshAggregate()`
 
-| Situation | Use |
-|---|---|
-| Rendering a tree, hundreds of nodes | stored column — it's already there |
-| Drift audit / scheduled health check | `freshAggregate()` or `aggregateErrors()` |
-| One-off report with a predicate you haven't declared | `withFreshAggregates([alias => Aggregate::…])` |
-| Source column was just touched outside Eloquent | `freshAggregate()` until the next [repair pass](../maintenance/fix-aggregates.html) |
+| Situation                                            | Use                                                                                 |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Rendering a tree, hundreds of nodes                  | stored column — it's already there                                                  |
+| Drift audit / scheduled health check                 | `freshAggregate()` or `aggregateErrors()`                                           |
+| One-off report with a predicate you haven't declared | `withFreshAggregates([alias => Aggregate::…])`                                      |
+| Source column was just touched outside Eloquent      | `freshAggregate()` until the next [repair pass](../maintenance/fix-aggregates.html) |
 
 ## Ad-hoc aliases are in-memory only
 

@@ -23,13 +23,13 @@ $ordered = $electronics->flattenedSubtree();
 
 Five public methods land on every `NodeTrait` model:
 
-| Method | Returns | Order |
-| --- | --- | --- |
-| `dfs($subtree?, $filter?)` | `Generator<Model>` | DFS pre-order |
-| `dfsPostOrder($subtree?, $filter?)` | `Generator<Model>` | DFS post-order |
-| `bfs($subtree?, $filter?)` | `Generator<Model>` | Breadth-first |
-| `walk($visitor, $strategy?, $subtree?, $filter?)` | `void` | Visitor-driven; strategy = `'pre'`, `'post'`, or `'bfs'` |
-| `flattenedSubtree($strategy?, $subtree?, $filter?)` | `EloquentCollection` | Strategy of your choice |
+| Method                                              | Returns              | Order                                                    |
+| --------------------------------------------------- | -------------------- | -------------------------------------------------------- |
+| `dfs($subtree?, $filter?)`                          | `Generator<Model>`   | DFS pre-order                                            |
+| `dfsPostOrder($subtree?, $filter?)`                 | `Generator<Model>`   | DFS post-order                                           |
+| `bfs($subtree?, $filter?)`                          | `Generator<Model>`   | Breadth-first                                            |
+| `walk($visitor, $strategy?, $subtree?, $filter?)`   | `void`               | Visitor-driven; strategy = `'pre'`, `'post'`, or `'bfs'` |
+| `flattenedSubtree($strategy?, $subtree?, $filter?)` | `EloquentCollection` | Strategy of your choice                                  |
 
 ## The loaded-subtree contract
 
@@ -78,8 +78,8 @@ Electronics
 
 each strategy yields a different order:
 
-| Strategy | Visit order |
-| --- | --- |
+| Strategy                  | Visit order                                   |
+| ------------------------- | --------------------------------------------- |
 | `'pre'`  (DFS pre-order)  | Electronics, Laptops, Phones, iPhone, Android |
 | `'post'` (DFS post-order) | Laptops, iPhone, Android, Phones, Electronics |
 | `'bfs'`  (Breadth-first)  | Electronics, Laptops, Phones, iPhone, Android |
@@ -98,15 +98,15 @@ function (Model $node, WalkContext $ctx): WalkSignal|null
 
 `WalkContext` carries everything the walker knows about the current visit:
 
-| Field | Type | What it means |
-| --- | --- | --- |
-| `depth` | `int` | Relative to the walk root, **not** the absolute `depth` column on the node. The root itself is depth `0`. |
-| `parent` | `?Model` | The hydrated parent from the same subtree, or `null` at the walk root. |
-| `siblingIndex` | `int` | 0-indexed position among siblings under the same parent in the loaded subtree. |
-| `siblingCount` | `int` | Total number of siblings under the same parent. |
-| `isFirstSibling` | `bool` | Derived; both flags are `true` for an only child. |
-| `isLastSibling` | `bool` | Same. |
-| `pathToRoot()` | `list<Model>` | Ancestor chain from the current node up to (but excluding) the walk root. Empty at the root. Computed on first call. |
+| Field            | Type          | What it means                                                                                                        |
+| ---------------- | ------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `depth`          | `int`         | Relative to the walk root, **not** the absolute `depth` column on the node. The root itself is depth `0`.            |
+| `parent`         | `?Model`      | The hydrated parent from the same subtree, or `null` at the walk root.                                               |
+| `siblingIndex`   | `int`         | 0-indexed position among siblings under the same parent in the loaded subtree.                                       |
+| `siblingCount`   | `int`         | Total number of siblings under the same parent.                                                                      |
+| `isFirstSibling` | `bool`        | Derived; both flags are `true` for an only child.                                                                    |
+| `isLastSibling`  | `bool`        | Same.                                                                                                                |
+| `pathToRoot()`   | `list<Model>` | Ancestor chain from the current node up to (but excluding) the walk root. Empty at the root. Computed on first call. |
 
 The absolute `depth` column on the node is unchanged — read it via `$node->getDepth()` if you need it.
 
@@ -127,11 +127,11 @@ $electronics->walk(function (Model $node, WalkContext $ctx) {
 
 Return a `WalkSignal` from the visitor to steer the walk:
 
-| Signal | What it does |
-| --- | --- |
+| Signal                    | What it does                                                                                                                                                   |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `WalkSignal::SkipSubtree` | Don't descend into this node's children. Honoured by pre-order DFS and BFS; ignored by post-order (children are already visited by the time the parent fires). |
-| `WalkSignal::Stop` | Halt the walk immediately. No further visitors are called. |
-| `null` (or no return) | Continue normally. |
+| `WalkSignal::Stop`        | Halt the walk immediately. No further visitors are called.                                                                                                     |
+| `null` (or no return)     | Continue normally.                                                                                                                                             |
 
 ```php
 $electronics->walk(function (Model $node, WalkContext $ctx) {
@@ -173,11 +173,11 @@ $filter = WalkFilter::depth(3)->andThen(WalkFilter::where($predicate));
 
 The full shape of a filter:
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `maxDepth` | `?int` | `null` = unlimited. Inclusive — `depth(2)` allows depths `0, 1, 2`. Relative to the walk root. |
-| `visitable` | `?Closure(Model, WalkContext): bool` | `null` = visit everything. Returning `false` skips the node **and** its subtree. |
-| `includeRoot` | `bool` | Default `true`. `false` visits descendants only; depth numbering still treats the (skipped) root as depth `0`. |
+| Field         | Type                                 | Notes                                                                                                          |
+| ------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| `maxDepth`    | `?int`                               | `null` = unlimited. Inclusive — `depth(2)` allows depths `0, 1, 2`. Relative to the walk root.                 |
+| `visitable`   | `?Closure(Model, WalkContext): bool` | `null` = visit everything. Returning `false` skips the node **and** its subtree.                               |
+| `includeRoot` | `bool`                               | Default `true`. `false` visits descendants only; depth numbering still treats the (skipped) root as depth `0`. |
 
 Every walker method — `dfs()`, `dfsPostOrder()`, `bfs()`, `walk()`, `flattenedSubtree()` — accepts a `WalkFilter` as its last argument.
 
@@ -247,11 +247,11 @@ Mutating non-structural attributes (e.g. `$node->name = 'new'`) inside a visitor
 
 `NodeCollection::toTree()` (see [In-memory Tree Shaping](tree-shaping.md)) and the walker share the same input shape (a flat collection) but answer different questions.
 
-| Shape | Returns | Best for |
-| --- | --- | --- |
-| `$collection->toTree()` | Root model(s) with nested `children` arrays | Blade recursive includes, JSON nested rendering, anything that wants the *data structure* |
-| `$root->flattenedSubtree()` | Collection in chosen order | "Give me an ordered list", table rendering |
-| `$root->walk($visitor)` / `dfs()` | Visit each node in order; no return | Side-effecting passes, search, validation |
+| Shape                             | Returns                                     | Best for                                                                                  |
+| --------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `$collection->toTree()`           | Root model(s) with nested `children` arrays | Blade recursive includes, JSON nested rendering, anything that wants the *data structure* |
+| `$root->flattenedSubtree()`       | Collection in chosen order                  | "Give me an ordered list", table rendering                                                |
+| `$root->walk($visitor)` / `dfs()` | Visit each node in order; no return         | Side-effecting passes, search, validation                                                 |
 
 Choose the walker when you only need to *visit* each node. Choose `toTree()` when you need the nested arrays to hand to a template.
 

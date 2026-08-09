@@ -28,7 +28,7 @@ composer serve
 This:
 
 1. Builds the site once.
-2. Starts PHP's built-in dev server on http://localhost:8000.
+2. Starts PHP's built-in dev server on [http://localhost:8000](http://localhost:8000).
 3. Watches `docs/` and `docs-site/` (templates, CSS, JS, `build.php`) for changes and rebuilds on save. Your browser auto-reloads.
 
 Pass `--no-watch` to skip the watcher and just serve. Pass `--port=N` to use a different port.
@@ -60,23 +60,18 @@ Output lives in `../site/` (gitignored). Static files in `public/` are copied as
 
 ## Callouts
 
-Author GitHub-style alerts in any Markdown page; `build.php` expands them into
-styled callouts whose body is still rendered as Markdown:
+Author GitHub-style alerts in any Markdown page; `build.php` expands them into styled callouts whose body is still rendered as Markdown:
 
 ```markdown
 > [!NOTE]
 > Body text, with **Markdown** and [links](other.md).
 ```
 
-Supported: `NOTE`, `TIP`, `IMPORTANT`, `WARNING`, `CAUTION`. An optional title
-may follow the marker: `> [!TIP] Heads up`.
+Supported: `NOTE`, `TIP`, `IMPORTANT`, `WARNING`, `CAUTION`. An optional title may follow the marker: `> [!TIP] Heads up`.
 
 ## Tree widget
 
-Drop an indented tree into a fenced `ns-tree` block; indentation is the
-hierarchy. `lft`/`rgt`/`depth` are computed for you. A numeric brace
-annotation becomes an aggregate value that rolls up every ancestor as a SUM;
-other key/value pairs render as chips:
+Drop an indented tree into a fenced `ns-tree` block; indentation is the hierarchy. `lft`/`rgt`/`depth` are computed for you. A numeric brace annotation becomes an aggregate value that rolls up every ancestor as a SUM; other key/value pairs render as chips:
 
 ````markdown
 ```ns-tree
@@ -87,15 +82,6 @@ Electronics
 ```
 ````
 
-Selecting a node highlights its subtree + ancestors and shows the `BETWEEN`
-query (and matching `SUM` when a metric is present).
+Selecting a node highlights its subtree + ancestors and shows the `BETWEEN` query (and matching `SUM` when a metric is present).
 
-**Rewrite-ready data contract.** `tree-widget.js` is split into a JS authoring
-adapter (`NestedTree.fromText`) and a source-agnostic renderer
-(`NestedTree.render(mountEl, data)`), both on `window.NestedTree`. The renderer
-consumes a flat node list — `{ metric, nodes: [{ id, parentId, name, lft, rgt,
-depth, value, rollup, chips }] }` — so a future package-driven Laravel app can
-produce the identical shape from `Model::defaultOrder()->get()` (the
-maintained `<name>_total` column is each row's `rollup`) and reuse the same
-renderer over server-side AJAX. Partial-subtree fetches work too: any node
-whose `parentId` is absent from the set is rendered as a root.
+**Rewrite-ready data contract.** `tree-widget.js` is split into a JS authoring adapter (`NestedTree.fromText`) and a source-agnostic renderer (`NestedTree.render(mountEl, data)`), both on `window.NestedTree`. The renderer consumes a flat node list — `{ metric, nodes: [{ id, parentId, name, lft, rgt, depth, value, rollup, chips }] }` — so a future package-driven Laravel app can produce the identical shape from `Model::defaultOrder()->get()` (the maintained `<name>_total` column is each row's `rollup`) and reuse the same renderer over server-side AJAX. Partial-subtree fetches work too: any node whose `parentId` is absent from the set is rendered as a root.

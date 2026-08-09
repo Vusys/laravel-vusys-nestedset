@@ -59,20 +59,18 @@ Books
 
 The `lft` / `rgt` pill badges on each row show the dense slot ranges the rebuild assigns: Electronics (1..10), Computers (2..7), Books (11..16). Sibling order is determined by primary-key order under each parent — if you need a different sibling order, apply [`reorderChildren()`](../tree-operations/reordering.html) per parent after the rebuild.
 
-
-
-| Corruption | Detected by `countErrors()`? | Repaired by `fixTree()`? | Typical cause |
-| --- | --- | --- | --- |
-| `invalid_bounds` (`lft >= rgt`) | ✅ | ✅ | Raw `UPDATE` on `lft`/`rgt`; crashed transaction. |
-| `duplicate_lft` / `duplicate_rgt` | ✅ | ✅ | Concurrent gap-shifts without locking; partial migration. |
-| `orphans` (`parent_id` → missing row) | ✅ | ❌ — detected but not auto-repaired | Hard `DELETE` of a parent without cascading. |
-| `parent_bounds_mismatch` (child bounds not inside parent's) | ✅ | ✅ | Raw `UPDATE` on `parent_id` without rebuilding bounds. |
-| `depth_mismatch` (`depth` ≠ `parent.depth + 1`) | ✅ | ✅ | Raw edit that didn't also fix `depth`. |
-| `bounds_out_of_range` (below-1 bound / cross-column collision) | ✅ | ✅ | Raw `lft`/`rgt` literal outside the reserved range. |
-| `overlapping_bounds` (sibling intervals partially overlap without nesting) | ✅ | ✅ | Raw `lft`/`rgt` edit that left intervals intersecting. |
-| `even_bounds_width` (`rgt - lft` even — impossible in a valid set) | ✅ | ✅ | Raw `lft`/`rgt` edit producing an even-width span. |
-| `parent_id` cycles | ❌ — not surfaced by `countErrors()` | ❌ — cycle members are silently skipped | Raw `UPDATE` on `parent_id` that bypassed Eloquent guards. |
-| Aggregate drift (stored `articles_total` ≠ computed) | ✅ via `aggregateErrors()` | ✅ via `fixAggregates()` | Raw `UPDATE` on the source column. |
+| Corruption                                                                 | Detected by `countErrors()`?        | Repaired by `fixTree()`?               | Typical cause                                              |
+| -------------------------------------------------------------------------- | ----------------------------------- | -------------------------------------- | ---------------------------------------------------------- |
+| `invalid_bounds` (`lft >= rgt`)                                            | ✅                                   | ✅                                      | Raw `UPDATE` on `lft`/`rgt`; crashed transaction.          |
+| `duplicate_lft` / `duplicate_rgt`                                          | ✅                                   | ✅                                      | Concurrent gap-shifts without locking; partial migration.  |
+| `orphans` (`parent_id` → missing row)                                      | ✅                                   | ❌ — detected but not auto-repaired     | Hard `DELETE` of a parent without cascading.               |
+| `parent_bounds_mismatch` (child bounds not inside parent's)                | ✅                                   | ✅                                      | Raw `UPDATE` on `parent_id` without rebuilding bounds.     |
+| `depth_mismatch` (`depth` ≠ `parent.depth + 1`)                            | ✅                                   | ✅                                      | Raw edit that didn't also fix `depth`.                     |
+| `bounds_out_of_range` (below-1 bound / cross-column collision)             | ✅                                   | ✅                                      | Raw `lft`/`rgt` literal outside the reserved range.        |
+| `overlapping_bounds` (sibling intervals partially overlap without nesting) | ✅                                   | ✅                                      | Raw `lft`/`rgt` edit that left intervals intersecting.     |
+| `even_bounds_width` (`rgt - lft` even — impossible in a valid set)         | ✅                                   | ✅                                      | Raw `lft`/`rgt` edit producing an even-width span.         |
+| `parent_id` cycles                                                         | ❌ — not surfaced by `countErrors()` | ❌ — cycle members are silently skipped | Raw `UPDATE` on `parent_id` that bypassed Eloquent guards. |
+| Aggregate drift (stored `articles_total` ≠ computed)                       | ✅ via `aggregateErrors()`           | ✅ via `fixAggregates()`                | Raw `UPDATE` on the source column.                         |
 
 **Best practice in one rule:** mutate trees only through Eloquent on a `NodeTrait` model. Every `appendToNode`/`prependToNode`/`insertBeforeNode`/ `insertAfterNode`/`makeRoot`/`delete`/`forceDelete`/`restore` call is wrapped in a transaction and maintains every invariant. Most of the corruption categories above are reachable only by bypassing that surface.
 

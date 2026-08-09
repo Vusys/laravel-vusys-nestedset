@@ -8,16 +8,16 @@ If you only have time for one paragraph: **`parent_id` is treated as authoritati
 
 A well-formed nested-set tree (in a single scope) satisfies all of:
 
-| Invariant | Statement |
-| --- | --- |
-| **Strict bounds** | `lft < rgt` for every row. |
-| **Unique lft / rgt** | `lft` values are unique across the scope; `rgt` values too. |
-| **Contiguous numbering** | `{lft, rgt}` values form a permutation of `1 .. 2N`. |
-| **Containment ⇔ ancestry** | Row B is a descendant of A *iff* `A.lft < B.lft < B.rgt < A.rgt`. |
-| **`parent_id` agrees with bounds** | If B is a child of A, then B's `parent_id = A.id`. |
-| **No cycles** | Following `parent_id` from any row eventually reaches `null` (a root). |
-| **`parent_id` stays in scope** | For scoped models, a row's `parent_id` references a row with the same scope values. |
-| **`depth` matches `parent_id`** | A node's `depth` is one more than its parent's (or `0` for a root). |
+| Invariant                          | Statement                                                                           |
+| ---------------------------------- | ----------------------------------------------------------------------------------- |
+| **Strict bounds**                  | `lft < rgt` for every row.                                                          |
+| **Unique lft / rgt**               | `lft` values are unique across the scope; `rgt` values too.                         |
+| **Contiguous numbering**           | `{lft, rgt}` values form a permutation of `1 .. 2N`.                                |
+| **Containment ⇔ ancestry**         | Row B is a descendant of A *iff* `A.lft < B.lft < B.rgt < A.rgt`.                   |
+| **`parent_id` agrees with bounds** | If B is a child of A, then B's `parent_id = A.id`.                                  |
+| **No cycles**                      | Following `parent_id` from any row eventually reaches `null` (a root).              |
+| **`parent_id` stays in scope**     | For scoped models, a row's `parent_id` references a row with the same scope values. |
+| **`depth` matches `parent_id`**    | A node's `depth` is one more than its parent's (or `0` for a root).                 |
 
 When the package's own API is the only thing that mutates the table, all of these are maintained automatically. Corruption means at least one of them has been broken — typically by a write that bypassed the package.
 
@@ -179,7 +179,7 @@ The package can't pick the right answer because the right answer is domain-speci
 - Backfill rows imported from a pre-feature dataset.
 - An edit to the source attribute (`name`, `display_name`, …) inside a transaction that rolled back, leaving descendants' paths inconsistent.
 
-**Repair.** Automatic. `Category::fixMaterialisedPaths()` walks parent_id and rebuilds every declared column for every row. Pass a column name to limit the scope. The structural tree must already be intact — the rebuild reads `parent_id` and trusts it. Run `fixTree()` first if both have happened (`fixTree()` calls the path rebuild as its final step, so a single `fixTree()` covers both kinds of drift). See [Materialised Paths](../tree-operations/materialised-paths.md) for the wider feature reference.
+**Repair.** Automatic. `Category::fixMaterialisedPaths()` walks parent\_id and rebuilds every declared column for every row. Pass a column name to limit the scope. The structural tree must already be intact — the rebuild reads `parent_id` and trusts it. Run `fixTree()` first if both have happened (`fixTree()` calls the path rebuild as its final step, so a single `fixTree()` covers both kinds of drift). See [Materialised Paths](../tree-operations/materialised-paths.md) for the wider feature reference.
 
 ## Recovery
 
@@ -234,14 +234,14 @@ Idempotent: running it twice in a row, the second invocation finds zero drift an
 
 ### Recovery cheat-sheet
 
-| What you observe | Run this | Then |
-| --- | --- | --- |
-| `isBroken() === true` | `fixTree()` | Re-run `countErrors()` — orphans/cycles will still show. |
-| `aggregatesAreBroken() === true`, structure intact | `fixAggregates()` | Done. |
-| Both broken | `fixTree()`, then `fixAggregates()` | `fixTree()` calls `fixAggregates()` for you internally — but only on the post-rebuild structure, so the order is important. |
-| Materialised-path columns disagree with the tree | `fixMaterialisedPaths()` | Pass a column name to limit; `fixTree()` already runs this as its final step. |
-| Orphans after `fixTree()` | Re-parent, root-ify, or delete per [orphans](#orphans) | Then `fixTree()`. |
-| Cycles after `fixTree()` | See [`parent_id` cycles](#parentid-cycles) | Diagnostic SQL in [Diagnostic SQL](#diagnostic-sql). |
+| What you observe                                   | Run this                                               | Then                                                                                                                        |
+| -------------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| `isBroken() === true`                              | `fixTree()`                                            | Re-run `countErrors()` — orphans/cycles will still show.                                                                    |
+| `aggregatesAreBroken() === true`, structure intact | `fixAggregates()`                                      | Done.                                                                                                                       |
+| Both broken                                        | `fixTree()`, then `fixAggregates()`                    | `fixTree()` calls `fixAggregates()` for you internally — but only on the post-rebuild structure, so the order is important. |
+| Materialised-path columns disagree with the tree   | `fixMaterialisedPaths()`                               | Pass a column name to limit; `fixTree()` already runs this as its final step.                                               |
+| Orphans after `fixTree()`                          | Re-parent, root-ify, or delete per [orphans](#orphans) | Then `fixTree()`.                                                                                                           |
+| Cycles after `fixTree()`                           | See [`parent_id` cycles](#parentid-cycles)             | Diagnostic SQL in [Diagnostic SQL](#diagnostic-sql).                                                                        |
 
 ## Not-automatically-recoverable cases
 
@@ -288,7 +288,7 @@ SELECT a.id, a.parent_id, a.name
  WHERE w.id IS NULL;
 ```
 
-**Find orphans only** (parent_id non-null pointing at a missing id):
+**Find orphans only** (parent\_id non-null pointing at a missing id):
 
 ```sql
 SELECT child.id, child.parent_id, child.name

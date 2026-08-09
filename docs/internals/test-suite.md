@@ -9,15 +9,15 @@ This package keeps **derived state** — `lft` / `rgt` / `depth`, aggregate colu
 
 The default suite (`composer test`, sqlite) runs roughly:
 
-| Metric | Count |
-|---|---|
-| Test cases executed | ~2,260 |
-| `#[Test]` methods (before data-provider expansion) | ~1,850 |
-| Assertions | ~23,000 |
-| Test files (`*Test.php`) | ~280 |
-| Fixture models (`tests/Fixtures/Models/`) | 43 |
-| Database engines exercised | 4 (sqlite, mysql, mariadb, pgsql) |
-| Full CI matrix cells | 36 (3 PHP × 3 Laravel × 4 DB) |
+| Metric                                             | Count                             |
+| -------------------------------------------------- | --------------------------------- |
+| Test cases executed                                | \~2,260                           |
+| `#[Test]` methods (before data-provider expansion) | \~1,850                           |
+| Assertions                                         | \~23,000                          |
+| Test files (`*Test.php`)                           | \~280                             |
+| Fixture models (`tests/Fixtures/Models/`)          | 43                                |
+| Database engines exercised                         | 4 (sqlite, mysql, mariadb, pgsql) |
+| Full CI matrix cells                               | 36 (3 PHP × 3 Laravel × 4 DB)     |
 
 The default run **excludes** the opt-in fuzzer and runabout groups and the Performance suite; those add substantially more coverage on demand.
 
@@ -73,18 +73,18 @@ User-facing assertion helpers (`assertIsRoot`, `assertIsLeaf`, `assertTreeIsInta
 
 ## Running the tests
 
-| Command | What it runs |
-|---|---|
-| `composer test` | Default `Package` suite (sqlite) — excludes Performance, fuzzer, runabout |
-| `composer check` | Static gate: Pint (style) → Rector (dry-run) → PHPStan level 9, no baseline. Halts on first failure |
-| `composer test:coverage` | Package suite with text coverage (`XDEBUG_MODE=coverage`) |
-| `composer test:matrix` | Package suite once per backend (sqlite → mysql → mariadb → pgsql) |
-| `composer fuzz` | The `fuzzer` group only |
-| `composer runabout` | The `runabout` group only (order-dependent property journeys) |
-| `composer infection` | Mutation testing (Infection) |
-| `vendor/bin/phpunit --testsuite Performance` | The benchmark suite |
-| `vendor/bin/phpunit --filter test_method_name` | A single test |
-| `vendor/bin/phpunit tests/Feature/Diff` | One directory |
+| Command                                        | What it runs                                                                                        |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `composer test`                                | Default `Package` suite (sqlite) — excludes Performance, fuzzer, runabout                           |
+| `composer check`                               | Static gate: Pint (style) → Rector (dry-run) → PHPStan level 9, no baseline. Halts on first failure |
+| `composer test:coverage`                       | Package suite with text coverage (`XDEBUG_MODE=coverage`)                                           |
+| `composer test:matrix`                         | Package suite once per backend (sqlite → mysql → mariadb → pgsql)                                   |
+| `composer fuzz`                                | The `fuzzer` group only                                                                             |
+| `composer runabout`                            | The `runabout` group only (order-dependent property journeys)                                       |
+| `composer infection`                           | Mutation testing (Infection)                                                                        |
+| `vendor/bin/phpunit --testsuite Performance`   | The benchmark suite                                                                                 |
+| `vendor/bin/phpunit --filter test_method_name` | A single test                                                                                       |
+| `vendor/bin/phpunit tests/Feature/Diff`        | One directory                                                                                       |
 
 `composer check` is the static-analysis lane only — it does **not** run tests. Pair it with `composer test` before pushing.
 
@@ -121,13 +121,13 @@ The full grid is **PHP 8.3 / 8.4 / 8.5 × Laravel 11 / 12 / 13 × {sqlite, mysql
 
 ## What guards what
 
-| If you change… | The suite that will catch a regression |
-|---|---|
+| If you change…                                        | The suite that will catch a regression                                                                        |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | Mutation SQL (`appendToNode`, `moveTo`, gap shifting) | `Feature/Mutation`, `Feature/Corruption`, `TreeStructureFuzzer`, every runabout journey's structure invariant |
-| Aggregate maintenance | `Feature/Aggregates`, `AggregateFuzzer`, `AreaAggregateJourney` / `MonsterHordeJourney` |
-| `fixTree` / repair | `Feature/Corruption`, `RepairConvergenceJourney` |
-| Tree diff apply | `Feature/Diff`, `DiffRoundTripJourney`, `DiffAddRemoveJourney` |
-| Bulk insert / clone / JSON import | `Feature/BulkInsert`, `Feature/Clone`, `Feature/Import`, `CloneOrchardJourney`, `JsonRoundTripJourney` |
-| Anything touching the tree at all | `TestCase`'s `tearDown()` integrity check, on every DB-backed test |
+| Aggregate maintenance                                 | `Feature/Aggregates`, `AggregateFuzzer`, `AreaAggregateJourney` / `MonsterHordeJourney`                       |
+| `fixTree` / repair                                    | `Feature/Corruption`, `RepairConvergenceJourney`                                                              |
+| Tree diff apply                                       | `Feature/Diff`, `DiffRoundTripJourney`, `DiffAddRemoveJourney`                                                |
+| Bulk insert / clone / JSON import                     | `Feature/BulkInsert`, `Feature/Clone`, `Feature/Import`, `CloneOrchardJourney`, `JsonRoundTripJourney`        |
+| Anything touching the tree at all                     | `TestCase`'s `tearDown()` integrity check, on every DB-backed test                                            |
 
 See also: [Integrity & Repair](repair.html) for what `fixTree` guarantees, and [Testing Helpers](../reference/testing.html) for the assertions you can reuse in your own tests.

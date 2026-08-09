@@ -153,12 +153,12 @@ The returned models have `p1_count` and `recent_sum` as computed attributes. Not
 
 ## Choosing the right form
 
-| Need | Use |
-|------|-----|
-| Sum/count/min/max/avg over a column, all rows | unfiltered `#[NestedSetAggregate]` |
-| Same, but only rows matching column = value | `filter: ['col' => v]` |
-| Same, but only rows where a column is not null | `filterNotNull: 'col'` |
-| Same, but predicate needs SQL functions or comparisons | `filterRaw: '...'` + `filterRawWatches: [...]` |
-| Contribution is a PHP expression | `TreeAggregateListener` + `#[NestedSetAggregateListener]` |
-| Aggregate descendants only (not self) | `exclusive: true` |
-| One-off / ad-hoc / no column on the model | `withFreshAggregates(['alias' => Aggregate::...])` |
+| Need                                                   | Use                                                       |
+| ------------------------------------------------------ | --------------------------------------------------------- |
+| Sum/count/min/max/avg over a column, all rows          | unfiltered `#[NestedSetAggregate]`                        |
+| Same, but only rows matching column = value            | `filter: ['col' => v]`                                    |
+| Same, but only rows where a column is not null         | `filterNotNull: 'col'`                                    |
+| Same, but predicate needs SQL functions or comparisons | `filterRaw: '...'` + `filterRawWatches: [...]`            |
+| Contribution is a PHP expression                       | `TreeAggregateListener` + `#[NestedSetAggregateListener]` |
+| Aggregate descendants only (not self)                  | `exclusive: true`                                         |
+| One-off / ad-hoc / no column on the model              | `withFreshAggregates(['alias' => Aggregate::...])`        |

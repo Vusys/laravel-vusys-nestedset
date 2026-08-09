@@ -17,12 +17,12 @@ final class Columns
 }
 ```
 
-| Column | Type | Role |
-|---|---|---|
-| `lft` | unsigned bigint | Opening boundary of the node's subtree in a pre-order walk. |
-| `rgt` | unsigned bigint | Closing boundary. Always `> lft`. |
+| Column      | Type                            | Role                                                              |
+| ----------- | ------------------------------- | ----------------------------------------------------------------- |
+| `lft`       | unsigned bigint                 | Opening boundary of the node's subtree in a pre-order walk.       |
+| `rgt`       | unsigned bigint                 | Closing boundary. Always `> lft`.                                 |
 | `parent_id` | nullable (matches the key type) | **The source of truth** for parent/child links. `NULL` for roots. |
-| `depth` | unsigned int | Level in the tree (roots at 0). Stored, not computed. |
+| `depth`     | unsigned int                    | Level in the tree (roots at 0). Stored, not computed.             |
 
 The names are read through config-backed accessors on the model (`getLftName()` etc. in `src/NodeTrait.php`), so a project can rename them once in `config/nestedset.php` without touching the package.
 

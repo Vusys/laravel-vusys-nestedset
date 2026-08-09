@@ -28,12 +28,12 @@ Model-carrying events that include descendant ids (`SubtreeSoftDeleted`, `Subtre
 
 `Model::bulkInsertTree()` emits five events in order. Subscribe to the one whose granularity matches your use case.
 
-| Event | Fires when | Payload |
-|---|---|---|
-| `BulkInsertTreeStarting` | top of the call, before plan walk | `modelClass`, `appendTo`, raw `$tree` |
-| `BulkInsertTreePlanned` | after the DFS plan walk, before the transaction | `modelClass`, `appendTo`, flat `$plan` with relative bounds |
-| `BulkInsertNodeSaved` | once per row inside the save loop | `modelClass`, `node`, `planIndex`, `totalNodes`, `parent` |
-| `BulkInsertTreeSaved` | after every row is saved AND the closing `fixAggregates` has run | `modelClass`, `anchorId`, `appendTo`, `list<Model&HasNestedSet>` |
+| Event                     | Fires when                                                               | Payload                                                           |
+| ------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| `BulkInsertTreeStarting`  | top of the call, before plan walk                                        | `modelClass`, `appendTo`, raw `$tree`                             |
+| `BulkInsertTreePlanned`   | after the DFS plan walk, before the transaction                          | `modelClass`, `appendTo`, flat `$plan` with relative bounds       |
+| `BulkInsertNodeSaved`     | once per row inside the save loop                                        | `modelClass`, `node`, `planIndex`, `totalNodes`, `parent`         |
+| `BulkInsertTreeSaved`     | after every row is saved AND the closing `fixAggregates` has run         | `modelClass`, `anchorId`, `appendTo`, `list<Model&HasNestedSet>`  |
 | `BulkInsertTreeCompleted` | immediately after `BulkInsertTreeSaved`, with id summary for queued work | `modelClass`, `anchorId`, `rowsInserted`, `durationMs`, `nodeIds` |
 
 `BulkInsertTreeSaved` is the headline event for in-process indexing — you get every saved model in one go, in DFS pre-order. Stored aggregate columns *in the database* are fully rolled up by the time this fires, but the in-memory `$nodes` array was captured during the save loop before the repair pass ran, so the model instances carry their pre-roll-up aggregate values. Call `->fresh()` on a node (or re-query by `$nodeIds` from `BulkInsertTreeCompleted`) to read the final values.
@@ -42,15 +42,15 @@ Model-carrying events that include descendant ids (`SubtreeSoftDeleted`, `Subtre
 
 When the package cascades soft-delete, restore, or hard-delete through a subtree, it issues a single SQL statement against descendants — the per-row Eloquent `deleted` / `restored` events **never fire** for those descendants. These events close that gap.
 
-| Event | Fires when | Payload |
-|---|---|---|
-| `SubtreeSoftDeleting` | before the cascade UPDATE that propagates `deleted_at` | `anchor`, `bounds`, `scope`, `deletedAt` |
-| `SubtreeSoftDeleted` | after the cascade UPDATE | adds `descendantIds` |
-| `SubtreeRestoring` | before the restore-cascade UPDATE | `anchor`, `bounds`, `scope`, `marker` |
-| `SubtreeRestored` | after the restore-cascade UPDATE | adds `descendantIds` |
-| `SubtreeForceDeleting` | before the hard-delete cascade on `forceDelete()` of an interior node | `anchor`, `bounds`, `scope`, `descendantIds` |
-| `SubtreeForceDeleted` | after the cascade DELETE | adds `descendantsAffected` |
-| `SoftDeleteMarkerCaptured` | inside `restoring`, when the package records the marker used to match descendants | `anchor`, `marker` |
+| Event                      | Fires when                                                                        | Payload                                      |
+| -------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------- |
+| `SubtreeSoftDeleting`      | before the cascade UPDATE that propagates `deleted_at`                            | `anchor`, `bounds`, `scope`, `deletedAt`     |
+| `SubtreeSoftDeleted`       | after the cascade UPDATE                                                          | adds `descendantIds`                         |
+| `SubtreeRestoring`         | before the restore-cascade UPDATE                                                 | `anchor`, `bounds`, `scope`, `marker`        |
+| `SubtreeRestored`          | after the restore-cascade UPDATE                                                  | adds `descendantIds`                         |
+| `SubtreeForceDeleting`     | before the hard-delete cascade on `forceDelete()` of an interior node             | `anchor`, `bounds`, `scope`, `descendantIds` |
+| `SubtreeForceDeleted`      | after the cascade DELETE                                                          | adds `descendantsAffected`                   |
+| `SoftDeleteMarkerCaptured` | inside `restoring`, when the package records the marker used to match descendants | `anchor`, `marker`                           |
 
 `descendantIds` is the *strict* descendant set (excludes the anchor). The anchor itself fires Eloquent's normal `deleted` / `restored` events in addition to the `Subtree*` pair.
 
@@ -58,49 +58,44 @@ When the package cascades soft-delete, restore, or hard-delete through a subtree
 
 `cloneSubtreeTo()` / `cloneSubtreeAsRoot()` suppress per-row Eloquent `creating` / `created` / `saving` / `saved` events for cloned rows (they ride on top of `bulkInsertTree`). The single signal listeners hook is `SubtreeCloned`.
 
-| Event | Fires when | Payload |
-|---|---|---|
+| Event           | Fires when                                                                                                    | Payload                                                       |
+| --------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
 | `SubtreeCloned` | after a successful `cloneSubtreeTo()` / `cloneSubtreeAsRoot()` — deferred to the outermost transaction commit | `modelClass`, `source`, `clone`, `rowCount`, `includeTrashed` |
 
 `source` is the original (re-read) root; `clone` is the new root of the cloned subtree. `rowCount` is the number of rows actually materialised on the destination side — equal to the source subtree size when `includeTrashed` is `true`, otherwise reduced by any trashed descendants that were silently skipped. Not queue-safe: it carries live model instances.
 
 ### Subtree movement
 
-| Event | Fires when | Payload |
-|---|---|---|
+| Event       | Fires when                                                                                                   | Payload                                                       |
+| ----------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------- |
 | `NodeMoved` | structural mutation of an existing node (one event per move; `up()`/`down()` fire two — one per participant) | `nodeId`, `fromBounds`, `toBounds`, `operation`, `durationMs` |
 
-`NodeMoved.operation` is one of `'appendTo'`, `'prependTo'`, `'sibling'`, `'root'`, or `'sibling-displaced'`. The first four mirror `PendingOperation::$action` — the participant the caller actually asked to move. `'sibling-displaced'` identifies the *other* participant in an `up()`/`down()` swap: the sibling that was shifted to make room. `switch ($e->operation)` consumers must include a case for `'sibling-displaced'` (or a default branch), or every `up()`/`down()` will silently miss half its events.
-| `SubtreeMoving` | before the structural SQL for an existing-node mutation | `anchor`, `fromBounds`, `operation` |
-| `SubtreeMoved` | after the structural SQL completes | `anchor`, `fromBounds`, `toBounds`, `operation`, `descendantIds`, `durationMs` |
-| `NodesSwapped` | `up()` / `down()` sibling swap completes | both participants + before/after bounds + `direction` |
-| `SiblingsReordered` | `reorderChildren()` / `moveToSiblingPosition()` / `reorderChildrenBy()` non-identity reorder completes | `parent`, `idsInOrder`, `rowsAffected`, `durationMs` |
-| `NodePromotedToRoot` | `makeRoot()` on an existing node | `anchor`, `previousParentId`, `previousDepth` |
+`NodeMoved.operation` is one of `'appendTo'`, `'prependTo'`, `'sibling'`, `'root'`, or `'sibling-displaced'`. The first four mirror `PendingOperation::$action` — the participant the caller actually asked to move. `'sibling-displaced'` identifies the *other* participant in an `up()`/`down()` swap: the sibling that was shifted to make room. `switch ($e->operation)` consumers must include a case for `'sibling-displaced'` (or a default branch), or every `up()`/`down()` will silently miss half its events. | `SubtreeMoving` | before the structural SQL for an existing-node mutation | `anchor`, `fromBounds`, `operation` | | `SubtreeMoved` | after the structural SQL completes | `anchor`, `fromBounds`, `toBounds`, `operation`, `descendantIds`, `durationMs` | | `NodesSwapped` | `up()` / `down()` sibling swap completes | both participants + before/after bounds + `direction` | | `SiblingsReordered` | `reorderChildren()` / `moveToSiblingPosition()` / `reorderChildrenBy()` non-identity reorder completes | `parent`, `idsInOrder`, `rowsAffected`, `durationMs` | | `NodePromotedToRoot` | `makeRoot()` on an existing node | `anchor`, `previousParentId`, `previousDepth` |
 
 The `NodeMoved` / `SubtreeMoved` pair exists because moving an interior node renumbers its entire subtree in SQL — `NodeMoved` carries only the anchor's bounds, so listeners that need the whole moved subtree (breadcrumbs, permission caches, search indexes that key on ancestor paths) should subscribe to `SubtreeMoved` for the descendant-id list.
 
 ### Tree repair
 
-| Event | Fires when | Payload |
-|---|---|---|
-| `FixTreeCompleted` | `Model::fixTree()` finishes | `modelClass`, `anchorId`, `nodesUpdated`, `durationMs`, `aggregatesFixed` |
-| `TreeIntegrityChecked` | every `isBroken()` / `countErrors()` call | `modelClass`, `anchorId`, `errors`, `totalErrors` |
+| Event                  | Fires when                                | Payload                                                                   |
+| ---------------------- | ----------------------------------------- | ------------------------------------------------------------------------- |
+| `FixTreeCompleted`     | `Model::fixTree()` finishes               | `modelClass`, `anchorId`, `nodesUpdated`, `durationMs`, `aggregatesFixed` |
+| `TreeIntegrityChecked` | every `isBroken()` / `countErrors()` call | `modelClass`, `anchorId`, `errors`, `totalErrors`                         |
 
 `TreeIntegrityChecked` fires on every check, including clean trees — useful as a heartbeat for monitoring. Filter on `$totalErrors > 0` if you only want alerts when drift exists.
 
 ### Aggregate maintenance
 
-| Event | Fires when | Payload |
-|---|---|---|
-| `FixAggregatesCompleted` | `Model::fixAggregates()` finishes (sync, single-shot or chunked) | `anchorId`, `totalRowsUpdated`, `perColumn`, `durationMs`, `chunkSize`, `totalChunks` |
-| `FixAggregatesChunkCompleted` | once per chunk in sync chunked + per dispatch in queued chunked | `anchorId`, `chunkIndex`, `chunkSize`, `rowsUpdated`, `cursorAfter`, `durationMs` |
-| `FixAggregatesJobDispatched` | `Model::queueFixAggregates()` hands a job to the dispatcher | `anchorId`, `chunkSize`, `onConnection`, `onQueue` |
-| `DeferredMaintenanceStarting` | outermost entry of `withDeferredAggregateMaintenance()` | `anchorId` |
-| `DeferredAggregateMaintenanceCompleted` | outermost exit of `withDeferredAggregateMaintenance()` after the closing repair | `anchorId`, `rowsFixed`, `closureDurationMs`, `repairDurationMs` |
-| `NodeAggregatesRecomputed` | once per lifecycle hook (`on_create` / `on_delete` / `on_restore` / `move`) when the model declares aggregates | `nodeId`, `columns`, `stage` |
-| `NestedSetAggregateChanged` | per-row, per-column CDC-style diff — fires once for every (ancestor row, aggregate column) pair whose stored value actually moved during a maintenance pass. **Opt-in by listener presence.** | `nodeId`, `column`, `oldValue`, `newValue`, `ancestorChain`, `stage` |
-| `AggregateDriftDetected` | `aggregateErrors()` finds at least one column with non-zero drift | `anchorId`, `perColumn`, `totalDrift` |
-| `AggregateMaintenanceFailed` | exception escapes one of the trait's aggregate-maintenance hooks; the original is rethrown | `anchorId`, `stage`, `exception` |
+| Event                                   | Fires when                                                                                                                                                                                    | Payload                                                                               |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `FixAggregatesCompleted`                | `Model::fixAggregates()` finishes (sync, single-shot or chunked)                                                                                                                              | `anchorId`, `totalRowsUpdated`, `perColumn`, `durationMs`, `chunkSize`, `totalChunks` |
+| `FixAggregatesChunkCompleted`           | once per chunk in sync chunked + per dispatch in queued chunked                                                                                                                               | `anchorId`, `chunkIndex`, `chunkSize`, `rowsUpdated`, `cursorAfter`, `durationMs`     |
+| `FixAggregatesJobDispatched`            | `Model::queueFixAggregates()` hands a job to the dispatcher                                                                                                                                   | `anchorId`, `chunkSize`, `onConnection`, `onQueue`                                    |
+| `DeferredMaintenanceStarting`           | outermost entry of `withDeferredAggregateMaintenance()`                                                                                                                                       | `anchorId`                                                                            |
+| `DeferredAggregateMaintenanceCompleted` | outermost exit of `withDeferredAggregateMaintenance()` after the closing repair                                                                                                               | `anchorId`, `rowsFixed`, `closureDurationMs`, `repairDurationMs`                      |
+| `NodeAggregatesRecomputed`              | once per lifecycle hook (`on_create` / `on_delete` / `on_restore` / `move`) when the model declares aggregates                                                                                | `nodeId`, `columns`, `stage`                                                          |
+| `NestedSetAggregateChanged`             | per-row, per-column CDC-style diff — fires once for every (ancestor row, aggregate column) pair whose stored value actually moved during a maintenance pass. **Opt-in by listener presence.** | `nodeId`, `column`, `oldValue`, `newValue`, `ancestorChain`, `stage`                  |
+| `AggregateDriftDetected`                | `aggregateErrors()` finds at least one column with non-zero drift                                                                                                                             | `anchorId`, `perColumn`, `totalDrift`                                                 |
+| `AggregateMaintenanceFailed`            | exception escapes one of the trait's aggregate-maintenance hooks; the original is rethrown                                                                                                    | `anchorId`, `stage`, `exception`                                                      |
 
 `NodeAggregatesRecomputed` is the cache-invalidation signal: when an aggregate column on the ancestor chain has just been recomputed for this node, invalidate cached rollups under the same ancestor scope.
 
@@ -110,8 +105,8 @@ The `NodeMoved` / `SubtreeMoved` pair exists because moving an interior node ren
 
 ### Scope guard
 
-| Event | Fires when | Payload |
-|---|---|---|
+| Event                    | Fires when                                               | Payload                          |
+| ------------------------ | -------------------------------------------------------- | -------------------------------- |
 | `ScopeViolationDetected` | immediately before a `ScopeViolationException` is thrown | `modelClass`, `stage`, `message` |
 
 Useful for security / audit signals: cross-scope writes on multi-tenant trees are almost always a permission boundary mistake. The exception still propagates — this event lets observability tooling distinguish the package's scope guard from generic exceptions.

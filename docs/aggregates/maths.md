@@ -73,7 +73,7 @@ If you want the variance and the stddev over the same source, declare both as se
 
 Variance and stddev are derived in SQL from their three delta-maintained companions:
 
-- `Sum`  — accumulates `source`.
+- `Sum` — accumulates `source`.
 - `SumSq` — accumulates `source * source`. Internally a SUM companion with a "square" source transform; the maintenance machinery applies the transform on every contributing row.
 - `Count` — counts contributing rows.
 
